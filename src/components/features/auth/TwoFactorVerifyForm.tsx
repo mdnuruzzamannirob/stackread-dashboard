@@ -7,7 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-
+import Cookies from 'js-cookie'
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
 import {
@@ -78,10 +78,17 @@ export function TwoFactorVerifyForm() {
     setSubmitError(null)
 
     try {
-      const response = await verify2FA({
+      const { data: response } = await verify2FA({
         tempToken,
         otp: values.otp,
       }).unwrap()
+
+      Cookies.set('stackread_staff_session', response.token, {
+        expires: 7,
+        secure: true,
+        sameSite: 'strict',
+      }
+    )
 
       dispatch(
         setCredentials({
@@ -90,7 +97,7 @@ export function TwoFactorVerifyForm() {
         }),
       )
 
-      const meResponse = await getStaffMe().unwrap()
+      const { data: meResponse } = await getStaffMe().unwrap()
       dispatch(setPermissions(meResponse.permissions || []))
 
       router.push(`/${locale}/dashboard`)

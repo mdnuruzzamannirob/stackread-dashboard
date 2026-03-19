@@ -78,7 +78,7 @@ export function TwoFactorSetupFlow() {
       setSetupError(null)
 
       try {
-        const setupResponse = await setup2FA(tempToken).unwrap()
+        const { data: setupResponse } = await setup2FA(tempToken).unwrap()
         setSecret(setupResponse.secret)
         const dataUrl = await QRCode.toDataURL(setupResponse.qrCodeUrl, {
           margin: 1,

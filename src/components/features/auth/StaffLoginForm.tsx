@@ -66,7 +66,7 @@ export function StaffLoginForm() {
     setSubmitError(null)
 
     try {
-      const response = await loginStaff(values).unwrap()
+      const { data: response } = await loginStaff(values).unwrap()
 
       if (response.mustSetup2FA && response.tempToken) {
         dispatch(
