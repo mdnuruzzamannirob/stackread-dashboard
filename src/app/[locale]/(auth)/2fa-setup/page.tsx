@@ -1,4 +1,4 @@
-import { TwoFactorSetupFlow } from '@/components/features/auth/TwoFactorSetupFlow'
+import { TwoFactorSetupFlow } from '@/components/modules/auth/TwoFactorSetupFlow'
 import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 

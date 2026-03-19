@@ -1,7 +1,7 @@
 'use client'
 
-import { hydrateAuth } from '@/lib/redux/authSlice'
-import { useAppDispatch } from '@/lib/redux/hooks'
+import { useAppDispatch } from '@/store/hooks'
+import { hydrateAuth } from '@/store/slice/authSlice'
 import { useEffect } from 'react'
 
 export function InitializeAuth() {

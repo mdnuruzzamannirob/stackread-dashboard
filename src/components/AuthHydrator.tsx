@@ -9,22 +9,14 @@ import {
   getSessionTokenCookie,
   getTempTokenStorage,
 } from '@/lib/auth/clientTokenStorage'
+import { useAppDispatch } from '@/store/hooks'
 import {
   clearAuth,
   setCredentials,
   setHydrated,
   setPermissions,
   setTempAuth,
-} from '@/lib/redux/authSlice'
-import { useAppDispatch } from '@/lib/redux/hooks'
-
-interface StaffProfile {
-  id: string
-  name: string
-  email: string
-  avatar: string | null
-  role: string
-}
+} from '@/store/slice/authSlice'
 
 interface StaffMeResponse {
   id: string

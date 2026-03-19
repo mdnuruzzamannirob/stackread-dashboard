@@ -1,8 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -10,13 +10,13 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { setTempTokenStorage } from '@/lib/auth/clientTokenStorage'
-import { setTempAuth } from '@/lib/redux/authSlice'
-import { useAppDispatch } from '@/lib/redux/hooks'
-import { useAcceptInviteMutation } from '@/lib/redux/staffAuthApi'
 import {
   acceptInviteSchema,
   type AcceptInviteSchema,
 } from '@/lib/validations/auth'
+import { useAcceptInviteMutation } from '@/store/api/authApi'
+import { useAppDispatch } from '@/store/hooks'
+import { setTempAuth } from '@/store/slice/authSlice'
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error && 'data' in error) {
@@ -80,7 +80,7 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
           : (inviteEnvelope as { tempToken?: string })
 
       if (!response.tempToken) {
-        router.push(`/${locale}/auth/login`)
+        router.push(`/${locale}/login`)
         return
       }
 
@@ -93,7 +93,7 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
         }),
       )
 
-      router.push(`/${locale}/auth/2fa/setup`)
+      router.push(`/${locale}/2fa-setup`)
     } catch (error) {
       setSubmitError(getErrorMessage(error, t('invalidCredentials')))
     }

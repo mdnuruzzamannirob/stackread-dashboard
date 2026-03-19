@@ -1,7 +1,7 @@
 'use client'
 
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks'
-import { toggleSidebar } from '@/lib/redux/uiSlice'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { toggleSidebar } from '@/store/slice/uiSlice'
 import { Menu, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import Link from 'next/link'
@@ -13,17 +13,17 @@ export function DashboardSidebar() {
 
   const navItems = [
     { label: 'navigation.dashboard', href: '/dashboard' },
-    { label: 'navigation.staff', href: '/dashboard/staff' },
-    { label: 'navigation.members', href: '/dashboard/members' },
-    { label: 'navigation.books', href: '/dashboard/books' },
-    { label: 'navigation.borrows', href: '/dashboard/borrows' },
-    { label: 'navigation.reservations', href: '/dashboard/reservations' },
-    { label: 'navigation.payments', href: '/dashboard/payments' },
-    { label: 'navigation.subscriptions', href: '/dashboard/subscriptions' },
-    { label: 'navigation.promotions', href: '/dashboard/promotions' },
-    { label: 'navigation.reports', href: '/dashboard/reports' },
-    { label: 'navigation.settings', href: '/dashboard/settings' },
-    { label: 'navigation.audit', href: '/dashboard/audit' },
+    { label: 'navigation.staff', href: '/staff' },
+    { label: 'navigation.members', href: '/members' },
+    { label: 'navigation.books', href: '/books' },
+    { label: 'navigation.borrows', href: '/borrows' },
+    { label: 'navigation.reservations', href: '/reservations' },
+    { label: 'navigation.payments', href: '/payments' },
+    { label: 'navigation.subscriptions', href: '/subscriptions' },
+    { label: 'navigation.promotions', href: '/promotions' },
+    { label: 'navigation.reports', href: '/reports' },
+    { label: 'navigation.settings', href: '/settings' },
+    { label: 'navigation.audit', href: '/audit' },
   ]
 
   return (

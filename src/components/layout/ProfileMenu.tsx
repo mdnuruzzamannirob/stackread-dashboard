@@ -12,7 +12,7 @@ export function ProfileMenu() {
         {t('navigation.profile')}
       </Link>
       <Link
-        href="/auth/logout"
+        href="/logout"
         className="block text-sm hover:underline text-red-600"
       >
         {t('navigation.logout')}

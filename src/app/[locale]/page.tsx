@@ -10,7 +10,7 @@ export default async function LocaleHomePage({
   const session = await getSession()
 
   if (!session || session.isExpired) {
-    redirect(`/${locale}/auth/login`)
+    redirect(`/${locale}/login`)
   }
 
   redirect(`/${locale}/dashboard`)

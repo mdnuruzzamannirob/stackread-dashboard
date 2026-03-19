@@ -14,11 +14,11 @@ export default async function DashboardLayout({
   const session = await getSession()
 
   if (!session || session.isExpired) {
-    redirect(`/${locale}/auth/login`)
+    redirect(`/${locale}/login`)
   }
 
   if (session.mustSetup2FA) {
-    redirect(`/${locale}/auth/2fa/setup`)
+    redirect(`/${locale}/2fa-setup`)
   }
 
   return (

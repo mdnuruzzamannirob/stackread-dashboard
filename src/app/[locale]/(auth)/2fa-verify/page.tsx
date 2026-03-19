@@ -1,8 +1,8 @@
-import { StaffLoginForm } from '@/components/features/auth/StaffLoginForm'
+import { TwoFactorVerifyForm } from '@/components/modules/auth/TwoFactorVerifyForm'
 import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 
-export default async function LoginPage({
+export default async function TwoFactorVerifyPage({
   params,
 }: {
   params: Promise<{ locale: string }>
@@ -14,5 +14,5 @@ export default async function LoginPage({
     redirect(`/${locale}/dashboard`)
   }
 
-  return <StaffLoginForm />
+  return <TwoFactorVerifyForm />
 }

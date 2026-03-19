@@ -2,8 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import Link from 'next/link'
 import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -14,17 +14,17 @@ import {
   clearTempTokenStorage,
   setSessionTokenCookie,
 } from '@/lib/auth/clientTokenStorage'
+import { verify2FASchema, type Verify2FASchema } from '@/lib/validations/auth'
+import {
+  useLazyGetStaffMeQuery,
+  useVerify2FAMutation,
+} from '@/store/api/authApi'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   clearAuth,
   setCredentials,
   setPermissions,
-} from '@/lib/redux/authSlice'
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks'
-import {
-  useLazyGetStaffMeQuery,
-  useVerify2FAMutation,
-} from '@/lib/redux/staffAuthApi'
-import { verify2FASchema, type Verify2FASchema } from '@/lib/validations/auth'
+} from '@/store/slice/authSlice'
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error && 'data' in error) {
@@ -69,13 +69,13 @@ export function TwoFactorVerifyForm() {
 
   useEffect(() => {
     if (!tempToken) {
-      router.replace(`/${locale}/auth/login`)
+      router.replace(`/${locale}/login`)
     }
   }, [locale, router, tempToken])
 
   const onSubmit = async (values: Verify2FASchema) => {
     if (!tempToken) {
-      router.replace(`/${locale}/auth/login`)
+      router.replace(`/${locale}/login`)
       return
     }
 
@@ -97,7 +97,9 @@ export function TwoFactorVerifyForm() {
       dispatch(
         setCredentials({
           token: response.token,
-          staff: response.staff as Parameters<typeof setCredentials>[0]['payload']['staff'],
+          staff: response.staff as Parameters<
+            typeof setCredentials
+          >[0]['staff'],
         }),
       )
 
@@ -156,7 +158,7 @@ export function TwoFactorVerifyForm() {
           </Button>
 
           <Link
-            href={`/${locale}/auth/login`}
+            href={`/${locale}/login`}
             onClick={() => dispatch(clearAuth())}
             className="inline-block text-sm text-primary underline-offset-4 hover:underline"
           >

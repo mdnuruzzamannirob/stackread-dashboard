@@ -1,7 +1,7 @@
 'use client'
 
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks'
-import { setTheme } from '@/lib/redux/uiSlice'
+import { useAppDispatch } from '@/store/hooks'
+import { setTheme } from '@/store/slice/uiSlice'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
@@ -9,11 +9,11 @@ import { useEffect, useState } from 'react'
 export function ThemeToggle() {
   const { theme, setTheme: setSystemTheme } = useTheme()
   const dispatch = useAppDispatch()
-  const UITheme = useAppSelector((state) => state.ui.theme)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    const id = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(id)
   }, [])
 
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {

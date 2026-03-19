@@ -1,8 +1,8 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Eye, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -16,15 +16,16 @@ import {
 } from '@/lib/auth/clientTokenStorage'
 import { loginSchema, type LoginSchema } from '@/lib/validations/auth'
 import {
+  LoginStaffResponse,
+  useLazyGetStaffMeQuery,
+  useLoginStaffMutation,
+} from '@/store/api/authApi'
+import { useAppDispatch } from '@/store/hooks'
+import {
   setCredentials,
   setPermissions,
   setTempAuth,
-} from '@/lib/redux/authSlice'
-import { useAppDispatch } from '@/lib/redux/hooks'
-import {
-  useLazyGetStaffMeQuery,
-  useLoginStaffMutation,
-} from '@/lib/redux/staffAuthApi'
+} from '@/store/slice/authSlice'
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error && 'data' in error) {
@@ -85,7 +86,7 @@ export function StaffLoginForm() {
             mustSetup2FA: true,
           }),
         )
-        router.push(`/${locale}/auth/2fa/setup`)
+        router.push(`/${locale}/2fa-setup`)
         return
       }
 
@@ -97,7 +98,7 @@ export function StaffLoginForm() {
             requiresTwoFactor: true,
           }),
         )
-        router.push(`/${locale}/auth/2fa/verify`)
+        router.push(`/${locale}/2fa-verify`)
         return
       }
 

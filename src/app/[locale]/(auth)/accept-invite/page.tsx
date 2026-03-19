@@ -1,4 +1,4 @@
-import { AcceptInviteForm } from '@/components/features/auth/AcceptInviteForm'
+import { AcceptInviteForm } from '@/components/modules/auth/AcceptInviteForm'
 import { redirect } from 'next/navigation'
 
 export default async function AcceptInvitePage({
@@ -12,7 +12,7 @@ export default async function AcceptInvitePage({
   const { token } = await searchParams
 
   if (!token) {
-    redirect(`/${locale}/auth/login`)
+    redirect(`/${locale}/login`)
   }
 
   return <AcceptInviteForm token={token} />

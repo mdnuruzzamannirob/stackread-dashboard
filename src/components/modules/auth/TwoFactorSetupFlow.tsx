@@ -2,8 +2,8 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import { useLocale, useTranslations } from 'next-intl'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 import { useEffect, useMemo, useState } from 'react'
@@ -15,14 +15,14 @@ import {
   clearTempTokenStorage,
   setSessionTokenCookie,
 } from '@/lib/auth/clientTokenStorage'
-import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks'
+import { enable2FASchema, type Enable2FASchema } from '@/lib/validations/auth'
 import {
   useEnable2FAMutation,
   useLazyGetStaffMeQuery,
   useSetup2FAMutation,
-} from '@/lib/redux/staffAuthApi'
-import { enable2FASchema, type Enable2FASchema } from '@/lib/validations/auth'
-import { setCredentials, setPermissions } from '@/lib/redux/authSlice'
+} from '@/store/api/authApi'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { setCredentials, setPermissions } from '@/store/slice/authSlice'
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error && 'data' in error) {
@@ -74,7 +74,7 @@ export function TwoFactorSetupFlow() {
 
   useEffect(() => {
     if (!tempToken) {
-      router.replace(`/${locale}/auth/login`)
+      router.replace(`/${locale}/login`)
       return
     }
 
@@ -108,7 +108,7 @@ export function TwoFactorSetupFlow() {
 
   const onEnable = async (values: Enable2FASchema) => {
     if (!tempToken) {
-      router.replace(`/${locale}/auth/login`)
+      router.replace(`/${locale}/login`)
       return
     }
 
@@ -130,7 +130,9 @@ export function TwoFactorSetupFlow() {
       dispatch(
         setCredentials({
           token: response.token,
-          staff: response.staff as Parameters<typeof setCredentials>[0]['payload']['staff'],
+          staff: response.staff as Parameters<
+            typeof setCredentials
+          >[0]['staff'],
         }),
       )
 

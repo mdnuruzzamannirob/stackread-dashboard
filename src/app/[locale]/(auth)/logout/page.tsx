@@ -5,8 +5,8 @@ import {
   clearSessionTokenCookie,
   clearTempTokenStorage,
 } from '@/lib/auth/clientTokenStorage'
-import { logout } from '@/lib/redux/authSlice'
-import { useAppDispatch } from '@/lib/redux/hooks'
+import { useAppDispatch } from '@/store/hooks'
+import { logout } from '@/store/slice/authSlice'
 import { useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
@@ -22,7 +22,7 @@ export default function LogoutPage() {
     clearTempTokenStorage()
     dispatch(logout())
     const timer = setTimeout(() => {
-      router.push('/en/auth/login')
+      router.push('/en/login')
     }, 1000)
 
     return () => clearTimeout(timer)

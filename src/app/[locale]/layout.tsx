@@ -1,5 +1,5 @@
-import { AuthHydrator } from '@/components/auth/AuthHydrator'
-import { StoreProvider } from '@/lib/redux/StoreProvider'
+import { AuthHydrator } from '@/components/AuthHydrator'
+import { StoreProvider } from '@/store/StoreProvider'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
 import { ThemeProvider } from 'next-themes'
