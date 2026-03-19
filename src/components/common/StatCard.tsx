@@ -1,11 +1,9 @@
 'use client'
 
-import { LucideIcon } from 'lucide-react'
-
 interface StatCardProps {
   label: string
   value: string | number
-  icon?: LucideIcon
+  icon?: React.ComponentType<{ className?: string }>
   change?: string
   changePositive?: boolean
 }

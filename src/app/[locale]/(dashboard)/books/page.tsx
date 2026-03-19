@@ -1,11 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { BooksList } from '@/components/modules/books/BooksList'
+import { PERMISSIONS } from '@/constants/permissions'
 
 export default function BooksPage() {
-  const t = useTranslations()
   return (
-    <PageHeader title={t('navigation.books')} description="Books management" />
+    <PermissionGuard permissions={[PERMISSIONS.BOOKS_VIEW]}>
+      <BooksList />
+    </PermissionGuard>
   )
 }

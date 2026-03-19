@@ -1,13 +1,34 @@
 'use client'
 
+import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PageHeader } from '@/components/common/PageHeader'
-import { StatCard } from '@/components/common/StatCard'
-import { BookOpen, Clock, TrendingUp, Users } from 'lucide-react'
+import { ActivityFeed } from '@/components/modules/dashboard/ActivityFeed'
+import { KPIGrid } from '@/components/modules/dashboard/KPIGrid'
+import { RevenueTrendChart } from '@/components/modules/dashboard/RevenueTrendChart'
+import {
+  useGetAdminOverviewQuery,
+  useGetAuditLogsQuery,
+} from '@/store/api/dashboardApi'
 import { useTranslations } from 'next-intl'
 
 export default function DashboardPage() {
   const t = useTranslations()
+  const { data: overviewData, isLoading: isOverviewLoading } =
+    useGetAdminOverviewQuery({ period: 'month' })
+  const { data: auditData, isLoading: isAuditLoading } = useGetAuditLogsQuery({
+    page: 1,
+    limit: 10,
+  })
 
+  if (isOverviewLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  console.log(overviewData)
   return (
     <div className="space-y-6">
       <PageHeader
@@ -15,42 +36,35 @@ export default function DashboardPage() {
         description={t('dashboard.overview')}
       />
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          icon={Users}
-          label={t('dashboard.totalMembers')}
-          value="1,234"
-          change="+12% from last month"
-          changePositive
-        />
-        <StatCard
-          icon={BookOpen}
-          label={t('dashboard.totalBooks')}
-          value="5,678"
-          change="+5% from last month"
-          changePositive
-        />
-        <StatCard
-          icon={TrendingUp}
-          label={t('dashboard.activeLoans')}
-          value="432"
-          change="-2% from last month"
-          changePositive={false}
-        />
-        <StatCard
-          icon={Clock}
-          label={t('dashboard.pendingApprovals')}
-          value="12"
-          change="No change"
-        />
-      </section>
+      {overviewData && (
+        <>
+          <KPIGrid
+            stats={{
+              totalMembers: overviewData.stats.totalMembers,
+              totalBooks: overviewData.stats.totalBooks,
+              activeLoans: overviewData.stats.activeLoans,
+              totalRevenue: overviewData.stats.totalRevenue,
+            }}
+            growth={{
+              memberGrowth: overviewData.stats.memberGrowth,
+              bookAdditions: overviewData.stats.bookAdditions,
+              loanTrend: overviewData.stats.loanTrend,
+              revenueGrowth: overviewData.stats.revenueGrowth,
+            }}
+          />
 
-      <section className="rounded-lg border border-border bg-card p-6">
-        <h2 className="text-xl font-bold mb-4">
-          {t('dashboard.recentActivity')}
-        </h2>
-        <p className="text-sm text-muted-foreground">Phase 1 Placeholder</p>
-      </section>
+          <RevenueTrendChart
+            data={overviewData.revenueTrend}
+            isLoading={isOverviewLoading}
+          />
+
+          <ActivityFeed
+            activities={auditData?.data || overviewData.activityLog}
+            isLoading={isAuditLoading}
+            maxItems={10}
+          />
+        </>
+      )}
     </div>
   )
 }

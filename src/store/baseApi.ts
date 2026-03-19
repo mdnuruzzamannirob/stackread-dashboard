@@ -31,14 +31,14 @@ export const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  const result = await baseQuery(args, api, extraOptions)
+  let result = await baseQuery(args, api, extraOptions)
 
   if (result.error && result.error.status === 401) {
-    // Handle unauthorized - session expired or token invalid
-    // Dispatch logout action in authSlice
+    // Token expired or invalid - clear auth state
     clearSessionTokenCookie()
     clearTempTokenStorage()
     api.dispatch({ type: 'auth/clearAuth' })
+    // Optionally redirect to login, but let pages handle it via PermissionGuard
   }
 
   return result
@@ -51,10 +51,14 @@ export const baseApi = createApi({
     'Staff',
     'Members',
     'Books',
+    'Authors',
+    'Categories',
     'Borrows',
     'Reservations',
     'Payments',
     'Subscriptions',
+    'Audit',
+    'Dashboard',
   ],
   endpoints: () => ({}),
 })
