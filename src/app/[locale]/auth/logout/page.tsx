@@ -1,6 +1,10 @@
 'use client'
 
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import {
+  clearSessionTokenCookie,
+  clearTempTokenStorage,
+} from '@/lib/auth/clientTokenStorage'
 import { logout } from '@/lib/redux/authSlice'
 import { useAppDispatch } from '@/lib/redux/hooks'
 import { useTranslations } from 'next-intl'
@@ -14,6 +18,8 @@ export default function LogoutPage() {
 
   useEffect(() => {
     // Clear auth state and redirect to login
+    clearSessionTokenCookie()
+    clearTempTokenStorage()
     dispatch(logout())
     const timer = setTimeout(() => {
       router.push('/en/auth/login')

@@ -9,6 +9,11 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import {
+  clearTempTokenStorage,
+  setSessionTokenCookie,
+  setTempTokenStorage,
+} from '@/lib/auth/clientTokenStorage'
 import { loginSchema, type LoginSchema } from '@/lib/validations/auth'
 import {
   setCredentials,
@@ -66,9 +71,14 @@ export function StaffLoginForm() {
     setSubmitError(null)
 
     try {
-      const { data: response } = await loginStaff(values).unwrap()
+      const loginEnvelope = await loginStaff(values).unwrap()
+      const response =
+        'data' in loginEnvelope
+          ? (loginEnvelope.data as NonNullable<LoginStaffResponse>)
+          : (loginEnvelope as NonNullable<LoginStaffResponse>)
 
       if (response.mustSetup2FA && response.tempToken) {
+        setTempTokenStorage(response.tempToken, 'setup')
         dispatch(
           setTempAuth({
             tempToken: response.tempToken,
@@ -80,6 +90,7 @@ export function StaffLoginForm() {
       }
 
       if (response.requiresTwoFactor && response.tempToken) {
+        setTempTokenStorage(response.tempToken, 'verify')
         dispatch(
           setTempAuth({
             tempToken: response.tempToken,
@@ -91,6 +102,8 @@ export function StaffLoginForm() {
       }
 
       if (response.token && response.staff) {
+        setSessionTokenCookie(response.token)
+        clearTempTokenStorage()
         dispatch(
           setCredentials({
             token: response.token,
@@ -98,7 +111,11 @@ export function StaffLoginForm() {
           }),
         )
 
-        const meResponse = await getStaffMe().unwrap()
+        const meEnvelope = await getStaffMe().unwrap()
+        const meResponse =
+          'data' in meEnvelope
+            ? (meEnvelope.data as { permissions?: string[] })
+            : (meEnvelope as { permissions?: string[] })
         dispatch(setPermissions(meResponse.permissions || []))
 
         router.push(`/${locale}/dashboard`)

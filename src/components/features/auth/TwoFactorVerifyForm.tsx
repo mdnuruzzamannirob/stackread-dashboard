@@ -7,9 +7,13 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import Cookies from 'js-cookie'
+
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
+import {
+  clearTempTokenStorage,
+  setSessionTokenCookie,
+} from '@/lib/auth/clientTokenStorage'
 import {
   clearAuth,
   setCredentials,
@@ -78,26 +82,30 @@ export function TwoFactorVerifyForm() {
     setSubmitError(null)
 
     try {
-      const { data: response } = await verify2FA({
+      const verifyEnvelope = await verify2FA({
         tempToken,
         otp: values.otp,
       }).unwrap()
+      const response =
+        'data' in verifyEnvelope
+          ? (verifyEnvelope.data as { token: string; staff: unknown })
+          : (verifyEnvelope as { token: string; staff: unknown })
 
-      Cookies.set('stackread_staff_session', response.token, {
-        expires: 7,
-        secure: true,
-        sameSite: 'strict',
-      }
-    )
+      setSessionTokenCookie(response.token)
+      clearTempTokenStorage()
 
       dispatch(
         setCredentials({
           token: response.token,
-          staff: response.staff,
+          staff: response.staff as Parameters<typeof setCredentials>[0]['payload']['staff'],
         }),
       )
 
-      const { data: meResponse } = await getStaffMe().unwrap()
+      const meEnvelope = await getStaffMe().unwrap()
+      const meResponse =
+        'data' in meEnvelope
+          ? (meEnvelope.data as { permissions?: string[] })
+          : (meEnvelope as { permissions?: string[] })
       dispatch(setPermissions(meResponse.permissions || []))
 
       router.push(`/${locale}/dashboard`)

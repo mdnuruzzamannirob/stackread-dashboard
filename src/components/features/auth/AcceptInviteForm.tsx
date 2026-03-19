@@ -9,6 +9,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import { setTempTokenStorage } from '@/lib/auth/clientTokenStorage'
 import { setTempAuth } from '@/lib/redux/authSlice'
 import { useAppDispatch } from '@/lib/redux/hooks'
 import { useAcceptInviteMutation } from '@/lib/redux/staffAuthApi'
@@ -68,11 +69,22 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
     setSubmitError(null)
 
     try {
-      const response = await acceptInvite({
+      const inviteEnvelope = await acceptInvite({
         token: values.token,
         name: values.name,
         password: values.password,
       }).unwrap()
+      const response =
+        'data' in inviteEnvelope
+          ? (inviteEnvelope.data as { tempToken?: string })
+          : (inviteEnvelope as { tempToken?: string })
+
+      if (!response.tempToken) {
+        router.push(`/${locale}/auth/login`)
+        return
+      }
+
+      setTempTokenStorage(response.tempToken, 'setup')
 
       dispatch(
         setTempAuth({

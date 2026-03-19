@@ -4,8 +4,10 @@ import { jwtDecode } from 'jwt-decode'
 import { cookies } from 'next/headers'
 
 export interface SessionPayload {
-  staffId: string
-  actorType: 'staff' | 'super_admin'
+  id?: string
+  sub?: string
+  type?: 'staff' | 'user'
+  actorType?: 'staff' | 'super_admin'
   permissions: string[]
   mustSetup2FA?: boolean
   twoFactorEnabled?: boolean
@@ -35,6 +37,14 @@ export async function getSession(): Promise<Session | null> {
 
     const payload: SessionPayload = jwtDecode(token)
 
+    const staffId = payload.sub ?? payload.id
+    if (!staffId) {
+      return null
+    }
+
+    const actorType: Session['actorType'] =
+      payload.actorType === 'super_admin' ? 'super_admin' : 'staff'
+
     // Check if token is expired
     const now = Math.floor(Date.now() / 1000)
     const isExpired = payload.exp < now
@@ -44,8 +54,8 @@ export async function getSession(): Promise<Session | null> {
       payload.twoFactorEnabled === false
 
     return {
-      staffId: payload.staffId,
-      actorType: payload.actorType,
+      staffId,
+      actorType,
       permissions: payload.permissions || [],
       mustSetup2FA,
       isExpired,

@@ -11,6 +11,10 @@ import { Controller, useForm } from 'react-hook-form'
 
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
+import {
+  clearTempTokenStorage,
+  setSessionTokenCookie,
+} from '@/lib/auth/clientTokenStorage'
 import { useAppDispatch, useAppSelector } from '@/lib/redux/hooks'
 import {
   useEnable2FAMutation,
@@ -78,7 +82,11 @@ export function TwoFactorSetupFlow() {
       setSetupError(null)
 
       try {
-        const { data: setupResponse } = await setup2FA(tempToken).unwrap()
+        const setupEnvelope = await setup2FA(tempToken).unwrap()
+        const setupResponse =
+          'data' in setupEnvelope
+            ? (setupEnvelope.data as { secret: string; qrCodeUrl: string })
+            : (setupEnvelope as { secret: string; qrCodeUrl: string })
         setSecret(setupResponse.secret)
         const dataUrl = await QRCode.toDataURL(setupResponse.qrCodeUrl, {
           margin: 1,
@@ -107,15 +115,30 @@ export function TwoFactorSetupFlow() {
     setSetupError(null)
 
     try {
-      const response = await enable2FA({ tempToken, otp: values.otp }).unwrap()
+      const enableEnvelope = await enable2FA({
+        tempToken,
+        otp: values.otp,
+      }).unwrap()
+      const response =
+        'data' in enableEnvelope
+          ? (enableEnvelope.data as { token: string; staff: unknown })
+          : (enableEnvelope as { token: string; staff: unknown })
+
+      setSessionTokenCookie(response.token)
+      clearTempTokenStorage()
+
       dispatch(
         setCredentials({
           token: response.token,
-          staff: response.staff,
+          staff: response.staff as Parameters<typeof setCredentials>[0]['payload']['staff'],
         }),
       )
 
-      const meResponse = await getStaffMe().unwrap()
+      const meEnvelope = await getStaffMe().unwrap()
+      const meResponse =
+        'data' in meEnvelope
+          ? (meEnvelope.data as { permissions?: string[] })
+          : (meEnvelope as { permissions?: string[] })
       dispatch(setPermissions(meResponse.permissions || []))
 
       router.push(`/${locale}/dashboard`)

@@ -4,6 +4,11 @@ import type {
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+import {
+  clearSessionTokenCookie,
+  clearTempTokenStorage,
+} from '@/lib/auth/clientTokenStorage'
 import { RootState } from './store'
 
 const baseQuery = fetchBaseQuery({
@@ -31,6 +36,8 @@ export const baseQueryWithReauth: BaseQueryFn<
   if (result.error && result.error.status === 401) {
     // Handle unauthorized - session expired or token invalid
     // Dispatch logout action in authSlice
+    clearSessionTokenCookie()
+    clearTempTokenStorage()
     api.dispatch({ type: 'auth/clearAuth' })
   }
 
