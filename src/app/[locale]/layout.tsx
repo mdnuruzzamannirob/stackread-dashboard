@@ -1,4 +1,4 @@
-import { InitializeAuth } from '@/components/InitializeAuth'
+import { AuthHydrator } from '@/components/auth/AuthHydrator'
 import { StoreProvider } from '@/lib/redux/StoreProvider'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages } from 'next-intl/server'
@@ -15,7 +15,7 @@ export default async function LocaleLayout({
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <StoreProvider>
         <NextIntlClientProvider messages={messages}>
-          <InitializeAuth />
+          <AuthHydrator />
           {children}
         </NextIntlClientProvider>
       </StoreProvider>

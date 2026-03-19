@@ -17,6 +17,10 @@ export default async function DashboardLayout({
     redirect(`/${locale}/auth/login`)
   }
 
+  if (session.mustSetup2FA) {
+    redirect(`/${locale}/auth/2fa/setup`)
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <DashboardTopbar />

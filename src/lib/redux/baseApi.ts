@@ -31,7 +31,7 @@ export const baseQueryWithReauth: BaseQueryFn<
   if (result.error && result.error.status === 401) {
     // Handle unauthorized - session expired or token invalid
     // Dispatch logout action in authSlice
-    api.dispatch({ type: 'auth/logout' })
+    api.dispatch({ type: 'auth/clearAuth' })
   }
 
   return result
