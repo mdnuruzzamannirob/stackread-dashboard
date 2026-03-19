@@ -2,11 +2,11 @@
 
 import { PermissionGuard } from '@/components/common/PermissionGuard'
 import { AuthorsList } from '@/components/modules/authors/AuthorsList'
-import { PERMISSIONS } from '@/constants/permissions'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function AuthorsPage() {
   return (
-    <PermissionGuard permissions={[PERMISSIONS.AUTHORS_VIEW]}>
+    <PermissionGuard requiredPermission={PERMISSIONS.AUTHORS_VIEW}>
       <AuthorsList />
     </PermissionGuard>
   )

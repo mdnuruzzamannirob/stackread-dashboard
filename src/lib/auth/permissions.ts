@@ -4,9 +4,11 @@ export const PERMISSIONS = {
   AUDIT_MANAGE: 'audit.manage',
 
   // Authors
+  AUTHORS_VIEW: 'authors.view',
   AUTHORS_MANAGE: 'authors.manage',
 
   // Books
+  BOOKS_VIEW: 'books.view',
   BOOKS_MANAGE: 'books.manage',
 
   // Borrows
@@ -14,6 +16,7 @@ export const PERMISSIONS = {
   BORROWS_MANAGE: 'borrows.manage',
 
   // Categories
+  CATEGORIES_VIEW: 'categories.view',
   CATEGORIES_MANAGE: 'categories.manage',
 
   // Members

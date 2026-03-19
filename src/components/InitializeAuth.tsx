@@ -3,6 +3,7 @@
 import { useGetStaffMeQuery } from '@/store/api/authApi'
 import { useAppDispatch } from '@/store/hooks'
 import { clearAuth, setAuth } from '@/store/slice/authSlice'
+import { getSessionTokenCookie } from '@/lib/auth/clientTokenStorage'
 import { useEffect } from 'react'
 
 export function InitializeAuth() {
@@ -18,7 +19,7 @@ export function InitializeAuth() {
     }
 
     if (staffMe) {
-      const token = localStorage.getItem('session_token')
+      const token = getSessionTokenCookie()
       if (token) {
         dispatch(
           setAuth({

@@ -2,11 +2,11 @@
 
 import { PermissionGuard } from '@/components/common/PermissionGuard'
 import { CategoriesList } from '@/components/modules/categories/CategoriesList'
-import { PERMISSIONS } from '@/constants/permissions'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function CategoriesPage() {
   return (
-    <PermissionGuard permissions={[PERMISSIONS.CATEGORIES_VIEW]}>
+    <PermissionGuard requiredPermission={PERMISSIONS.CATEGORIES_VIEW}>
       <CategoriesList />
     </PermissionGuard>
   )

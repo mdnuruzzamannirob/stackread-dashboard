@@ -31,14 +31,27 @@ export const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  let result = await baseQuery(args, api, extraOptions)
+  const result = await baseQuery(args, api, extraOptions)
 
   if (result.error && result.error.status === 401) {
-    // Token expired or invalid - clear auth state
+    // Token expired or invalid
+    console.warn('[Auth] 401 Error - Token likely expired')
+
+    // Clear all auth tokens and state
     clearSessionTokenCookie()
     clearTempTokenStorage()
-    api.dispatch({ type: 'auth/clearAuth' })
-    // Optionally redirect to login, but let pages handle it via PermissionGuard
+
+    // Dispatch clearAuth action
+    const dispatch = api.dispatch
+    dispatch({ type: 'auth/clearAuth' })
+
+    // Log for debugging
+    console.warn('[Auth] Access denied - User session cleared')
+  }
+
+  if (result.error && result.error.status === 403) {
+    // Access forbidden - insufficient permissions
+    console.warn('[Auth] 403 Error - Insufficient permissions')
   }
 
   return result

@@ -2,11 +2,11 @@
 
 import { PermissionGuard } from '@/components/common/PermissionGuard'
 import { BooksList } from '@/components/modules/books/BooksList'
-import { PERMISSIONS } from '@/constants/permissions'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function BooksPage() {
   return (
-    <PermissionGuard permissions={[PERMISSIONS.BOOKS_VIEW]}>
+    <PermissionGuard requiredPermission={PERMISSIONS.BOOKS_VIEW}>
       <BooksList />
     </PermissionGuard>
   )
