@@ -1,0 +1,68 @@
+{
+    "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "cancel": "Cancel",
+        "save": "Save",
+        "delete": "Delete",
+        "edit": "Edit",
+        "add": "Add",
+        "close": "Close",
+        "search": "Search",
+        "noResults": "No results found",
+        "confirmDelete": "Are you sure you want to delete this item?",
+        "required": "This field is required"
+    },
+    "navigation": {
+        "dashboard": "Dashboard",
+        "staff": "Staff",
+        "members": "Members",
+        "books": "Books",
+        "borrows": "Borrows",
+        "reservations": "Reservations",
+        "payments": "Payments",
+        "subscriptions": "Subscriptions",
+        "promotions": "Promotions",
+        "reports": "Reports",
+        "settings": "Settings",
+        "audit": "Audit",
+        "logout": "Logout",
+        "profile": "Profile",
+        "notifications": "Notifications"
+    },
+    "auth": {
+        "login": "Login",
+        "email": "Email",
+        "password": "Password",
+        "rememberMe": "Remember me",
+        "forgotPassword": "Forgot password?",
+        "loginFailed": "Login failed",
+        "invalidCredentials": "Invalid email or password",
+        "twoFactorRequired": "Two-factor authentication required",
+        "enterCode": "Enter your 6-digit code",
+        "submitCode": "Verify Code",
+        "setupTwoFactor": "Set up two-factor authentication",
+        "scanQrCode": "Scan this QR code with your authenticator app",
+        "enterBackupCode": "Enter the code from your authenticator app",
+        "backupCodesWarning": "Save these backup codes in a safe place",
+        "confirmSetup": "Confirm Setup"
+    },
+    "dashboard": {
+        "welcome": "Welcome to Stackread Admin",
+        "overview": "Dashboard Overview",
+        "recentActivity": "Recent Activity",
+        "statistics": "Statistics",
+        "totalMembers": "Total Members",
+        "totalBooks": "Total Books",
+        "activeLoans": "Active Loans",
+        "pendingApprovals": "Pending Approvals"
+    },
+    "errors": {
+        "forbidden": "You do not have permission to access this page",
+        "notFound": "Page not found",
+        "serverError": "An error occurred",
+        "unauthorized": "Unauthorized access",
+        "sessionExpired": "Your session has expired. Please log in again"
+    }
+}

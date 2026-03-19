@@ -1,0 +1,68 @@
+{
+    "common": {
+        "loading": "লোড হচ্ছে...",
+        "error": "ত্রুটি",
+        "success": "সফল",
+        "cancel": "বাতিল",
+        "save": "সংরক্ষণ",
+        "delete": "মুছুন",
+        "edit": "সম্পাদনা",
+        "add": "যোগ করুন",
+        "close": "বন্ধ করুন",
+        "search": "অনুসন্ধান",
+        "noResults": "কোন ফলাফল পাওয়া যায়নি",
+        "confirmDelete": "আপনি কি এই আইটেমটি মুছতে চান?",
+        "required": "এই ক্ষেত্রটি প্রয়োজনীয়"
+    },
+    "navigation": {
+        "dashboard": "ড্যাশবোর্ড",
+        "staff": "কর্মীবাহিনী",
+        "members": "সদস্যরা",
+        "books": "বই",
+        "borrows": "ধার",
+        "reservations": "সংরক্ষণ",
+        "payments": "পেমেন্ট",
+        "subscriptions": "সদস্যপদ",
+        "promotions": "প্রচার",
+        "reports": "রিপোর্ট",
+        "settings": "সেটিংস",
+        "audit": "অডিট",
+        "logout": "লগ আউট",
+        "profile": "প্রোফাইল",
+        "notifications": "বিজ্ঞপ্তি"
+    },
+    "auth": {
+        "login": "লগইন",
+        "email": "ইমেল",
+        "password": "পাসওয়ার্ড",
+        "rememberMe": "আমাকে মনে রাখুন",
+        "forgotPassword": "পাসওয়ার্ড ভুলে গেছেন?",
+        "loginFailed": "লগইন ব্যর্থ",
+        "invalidCredentials": "অবৈধ ইমেল বা পাসওয়ার্ড",
+        "twoFactorRequired": "দুই-ফ্যাক্টর প্রমাণীকরণ প্রয়োজন",
+        "enterCode": "আপনার 6-সংখ্যার কোড লিখুন",
+        "submitCode": "কোড যাচাই করুন",
+        "setupTwoFactor": "দুই-ফ্যাক্টর প্রমাণীকরণ সেট আপ করুন",
+        "scanQrCode": "আপনার প্রমাণীকরণকারী অ্যাপ দিয়ে এই QR কোডটি স্ক্যান করুন",
+        "enterBackupCode": "আপনার প্রমাণীকরণকারী অ্যাপ থেকে কোডটি লিখুন",
+        "backupCodesWarning": "এই ব্যাকআপ কোডগুলি একটি নিরাপদ স্থানে রাখুন",
+        "confirmSetup": "সেটআপ নিশ্চিত করুন"
+    },
+    "dashboard": {
+        "welcome": "Stackread প্রশাসন স্বাগতম",
+        "overview": "ড্যাশবোর্ড অবলোকন",
+        "recentActivity": "সম্প্রতি কার্যকলাপ",
+        "statistics": "পরিসংখ্যান",
+        "totalMembers": "মোট সদস্য",
+        "totalBooks": "মোট বই",
+        "activeLoans": "সক্রিয় ঋণ",
+        "pendingApprovals": "অনুমোদনের অপেক্ষায়"
+    },
+    "errors": {
+        "forbidden": "আপনার এই পৃষ্ঠায় অ্যাক্সেস করার অনুমতি নেই",
+        "notFound": "পৃষ্ঠা পাওয়া যায়নি",
+        "serverError": "একটি ত্রুটি ঘটেছে",
+        "unauthorized": "অননুমোদিত অ্যাক্সেস",
+        "sessionExpired": "আপনার সেশনের মেয়াদ শেষ হয়েছে। অনুগ্রহ করে আবার লগইন করুন"
+    }
+}
