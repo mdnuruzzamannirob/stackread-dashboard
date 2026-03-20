@@ -15,6 +15,7 @@ const baseQuery = fetchBaseQuery({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState
+
     const token = state.auth.token
 
     if (token) {
