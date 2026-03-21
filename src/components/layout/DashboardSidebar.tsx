@@ -90,14 +90,8 @@ export function DashboardSidebar() {
       requiredPermission: PERMISSIONS.AUDIT_VIEW,
     },
   ].filter((item) => {
-    // Show all items if still hydrating (loading auth state)
-    if (!isHydrated) {
-      return true
-    }
-
     // Show all items for super-admin after hydrated
     if (staff.staff?.role === 'super-admin') {
-      console.log('object')
       return true
     }
 
@@ -116,7 +110,7 @@ export function DashboardSidebar() {
       pathWithoutLocale === href || pathWithoutLocale.startsWith(href + '/')
     )
   }
-  console.log(staff, navItems)
+
   return (
     <aside
       className={`fixed left-0 top-16 h-[calc(100vh-4rem)] border-r border-border bg-background transition-all duration-300 ${
