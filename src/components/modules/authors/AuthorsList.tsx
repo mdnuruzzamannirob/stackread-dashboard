@@ -41,13 +41,14 @@ export function AuthorsList() {
     {
       key: 'verified',
       label: t('authors.verified'),
-      render: (value) => (value ? '✓' : '–'),
+      render: (value) => (Boolean(value) ? '✓' : '–'),
     },
     {
       key: 'createdAt',
       label: 'Created',
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) =>
+        value ? new Date(String(value)).toLocaleDateString() : '—',
     },
   ]
 

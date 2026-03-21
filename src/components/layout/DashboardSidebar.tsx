@@ -1,5 +1,6 @@
 'use client'
 
+import { hasPermission, PERMISSIONS } from '@/lib/auth/permissions'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { toggleSidebar } from '@/store/slice/uiSlice'
 import { Menu, X } from 'lucide-react'
@@ -12,28 +13,92 @@ export function DashboardSidebar() {
   const pathname = usePathname()
   const dispatch = useAppDispatch()
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed)
+  const permissions = useAppSelector((state) => state.auth.permissions)
+
+  const pathParts = pathname.split('/')
+  const locale = pathParts[1] || 'en'
 
   const navItems = [
     { label: 'navigation.dashboard', href: '/dashboard' },
-    { label: 'navigation.books', href: '/books' },
-    { label: 'authors.title', href: '/authors' },
-    { label: 'categories.title', href: '/categories' },
-    { label: 'navigation.staff', href: '/staff' },
-    { label: 'navigation.members', href: '/members' },
-    { label: 'navigation.borrows', href: '/borrows' },
-    { label: 'navigation.reservations', href: '/reservations' },
-    { label: 'navigation.payments', href: '/payments' },
-    { label: 'navigation.subscriptions', href: '/subscriptions' },
-    { label: 'navigation.promotions', href: '/promotions' },
-    { label: 'navigation.reports', href: '/reports' },
-    { label: 'navigation.settings', href: '/settings' },
-    { label: 'navigation.audit', href: '/audit' },
-  ]
+    {
+      label: 'navigation.books',
+      href: '/books',
+      requiredPermission: PERMISSIONS.BOOKS_VIEW,
+    },
+    {
+      label: 'navigation.authors',
+      href: '/authors',
+      requiredPermission: PERMISSIONS.AUTHORS_VIEW,
+    },
+    {
+      label: 'navigation.categories',
+      href: '/categories',
+      requiredPermission: PERMISSIONS.CATEGORIES_VIEW,
+    },
+    {
+      label: 'navigation.staff',
+      href: '/staff',
+      requiredPermission: PERMISSIONS.STAFF_VIEW,
+    },
+    {
+      label: 'navigation.rbac',
+      href: '/rbac',
+      requiredPermission: PERMISSIONS.RBAC_VIEW,
+    },
+    {
+      label: 'navigation.members',
+      href: '/members',
+      requiredPermission: PERMISSIONS.MEMBERS_VIEW,
+    },
+    {
+      label: 'navigation.borrows',
+      href: '/borrows',
+      requiredPermission: PERMISSIONS.BORROWS_VIEW,
+    },
+    {
+      label: 'navigation.reservations',
+      href: '/reservations',
+      requiredPermission: PERMISSIONS.RESERVATIONS_VIEW,
+    },
+    {
+      label: 'navigation.payments',
+      href: '/payments',
+      requiredPermission: PERMISSIONS.PAYMENTS_VIEW,
+    },
+    {
+      label: 'navigation.subscriptions',
+      href: '/subscriptions',
+      requiredPermission: PERMISSIONS.SUBSCRIPTIONS_VIEW,
+    },
+    {
+      label: 'navigation.promotions',
+      href: '/promotions',
+      requiredPermission: PERMISSIONS.PROMOTIONS_VIEW,
+    },
+    {
+      label: 'navigation.reports',
+      href: '/reports',
+      requiredPermission: PERMISSIONS.REPORTS_VIEW,
+    },
+    {
+      label: 'navigation.settings',
+      href: '/settings',
+      requiredPermission: PERMISSIONS.SETTINGS_VIEW,
+    },
+    {
+      label: 'navigation.audit',
+      href: '/audit',
+      requiredPermission: PERMISSIONS.AUDIT_VIEW,
+    },
+  ].filter((item) =>
+    item.requiredPermission
+      ? hasPermission(permissions, item.requiredPermission)
+      : true,
+  )
 
   const isActive = (href: string): boolean => {
     // Remove locale prefix from pathname for comparison
     // pathname format: /en/dashboard or /bn/dashboard or similar
-    const pathParts = pathname.split('/')
     const pathWithoutLocale = '/' + pathParts.slice(2).join('/')
 
     return (
@@ -63,7 +128,7 @@ export function DashboardSidebar() {
           {navItems.map((item) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={`/${locale}${item.href}`}
               className={`block rounded-lg px-3 py-2 text-sm transition-colors ${
                 isActive(item.href)
                   ? 'bg-primary text-primary-foreground font-medium'

@@ -7,12 +7,13 @@ import {
 } from '@/lib/auth/clientTokenStorage'
 import { useAppDispatch } from '@/store/hooks'
 import { logout } from '@/store/slice/authSlice'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function LogoutPage() {
   const t = useTranslations()
+  const locale = useLocale()
   const router = useRouter()
   const dispatch = useAppDispatch()
 
@@ -22,11 +23,11 @@ export default function LogoutPage() {
     clearTempTokenStorage()
     dispatch(logout())
     const timer = setTimeout(() => {
-      router.push('/en/login')
+      router.push(`/${locale}/login`)
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [dispatch, router, t])
+  }, [dispatch, locale, router, t])
 
   return (
     <div className="flex flex-col items-center justify-center gap-4">

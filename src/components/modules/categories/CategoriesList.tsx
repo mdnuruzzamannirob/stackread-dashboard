@@ -47,7 +47,8 @@ export function CategoriesList() {
       key: 'createdAt',
       label: 'Created',
       sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) =>
+        value ? new Date(String(value)).toLocaleDateString() : '—',
     },
   ]
 

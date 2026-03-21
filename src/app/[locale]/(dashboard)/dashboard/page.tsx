@@ -40,16 +40,16 @@ export default function DashboardPage() {
         <>
           <KPIGrid
             stats={{
-              totalMembers: overviewData.stats.totalMembers,
-              totalBooks: overviewData.stats.totalBooks,
-              activeLoans: overviewData.stats.activeLoans,
-              totalRevenue: overviewData.stats.totalRevenue,
+              totalMembers: overviewData.stats?.totalMembers,
+              totalBooks: overviewData.stats?.totalBooks,
+              activeLoans: overviewData.stats?.activeLoans,
+              totalRevenue: overviewData.stats?.totalRevenue,
             }}
             growth={{
-              memberGrowth: overviewData.stats.memberGrowth,
-              bookAdditions: overviewData.stats.bookAdditions,
-              loanTrend: overviewData.stats.loanTrend,
-              revenueGrowth: overviewData.stats.revenueGrowth,
+              memberGrowth: overviewData.stats?.memberGrowth,
+              bookAdditions: overviewData.stats?.bookAdditions,
+              loanTrend: overviewData.stats?.loanTrend,
+              revenueGrowth: overviewData.stats?.revenueGrowth,
             }}
           />
 

@@ -36,6 +36,9 @@ export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    setToken: (state, action: PayloadAction<string>) => {
+      state.token = action.payload
+    },
     setCredentials: (
       state,
       action: PayloadAction<{
@@ -144,6 +147,7 @@ export const authSlice = createSlice({
 })
 
 export const {
+  setToken,
   setCredentials,
   setTempAuth,
   setPermissions,

@@ -1,92 +1,102 @@
 export const PERMISSIONS = {
   // Audit
-  AUDIT_VIEW: 'audit.view',
   AUDIT_MANAGE: 'audit.manage',
+  AUDIT_VIEW: 'audit.view',
 
   // Authors
-  AUTHORS_VIEW: 'authors.view',
   AUTHORS_MANAGE: 'authors.manage',
+  AUTHORS_VIEW: 'authors.view',
 
   // Books
-  BOOKS_VIEW: 'books.view',
   BOOKS_MANAGE: 'books.manage',
+  BOOKS_VIEW: 'books.view',
 
   // Borrows
-  BORROWS_VIEW: 'borrows.view',
   BORROWS_MANAGE: 'borrows.manage',
+  BORROWS_VIEW: 'borrows.view',
 
   // Categories
-  CATEGORIES_VIEW: 'categories.view',
   CATEGORIES_MANAGE: 'categories.manage',
+  CATEGORIES_VIEW: 'categories.view',
 
   // Members
-  MEMBERS_VIEW: 'members.view',
   MEMBERS_MANAGE: 'members.manage',
+  MEMBERS_VIEW: 'members.view',
 
   // Notifications
   NOTIFICATIONS_MANAGE: 'notifications.manage',
 
   // Payments
-  PAYMENTS_VIEW: 'payments.view',
   PAYMENTS_MANAGE: 'payments.manage',
+  PAYMENTS_VIEW: 'payments.view',
 
   // Plans
   PLANS_MANAGE: 'plans.manage',
 
   // Promotions
-  PROMOTIONS_VIEW: 'promotions.view',
   PROMOTIONS_MANAGE: 'promotions.manage',
+  PROMOTIONS_VIEW: 'promotions.view',
 
   // RBAC
-  RBAC_VIEW: 'rbac.view',
   RBAC_MANAGE: 'rbac.manage',
-
-  // Reading History
-  READING_MANAGE: 'reading.manage',
+  RBAC_VIEW: 'rbac.view',
 
   // Reports
-  REPORTS_VIEW: 'reports.view',
   REPORTS_MANAGE: 'reports.manage',
+  REPORTS_VIEW: 'reports.view',
 
   // Reservations
-  RESERVATIONS_VIEW: 'reservations.view',
   RESERVATIONS_MANAGE: 'reservations.manage',
+  RESERVATIONS_VIEW: 'reservations.view',
 
   // Reviews
   REVIEWS_MANAGE: 'reviews.manage',
+  REVIEWS_VIEW: 'reviews.view',
 
   // Settings
-  SETTINGS_VIEW: 'settings.view',
   SETTINGS_MANAGE: 'settings.manage',
+  SETTINGS_VIEW: 'settings.view',
 
   // Staff Management
-  STAFF_VIEW: 'staff.view',
   STAFF_MANAGE: 'staff.manage',
+  STAFF_VIEW: 'staff.view',
 
   // Subscriptions
-  SUBSCRIPTIONS_VIEW: 'subscriptions.view',
   SUBSCRIPTIONS_MANAGE: 'subscriptions.manage',
+  SUBSCRIPTIONS_VIEW: 'subscriptions.view',
 } as const
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS]
 
 export function hasPermission(
   userPermissions: string[],
-  requiredPermission: Permission,
+  requiredPermission: string,
 ): boolean {
+  if (userPermissions.includes('*')) {
+    return true
+  }
+
   return userPermissions.includes(requiredPermission)
 }
 
 export function hasAnyPermission(
   userPermissions: string[],
-  permissions: Permission[],
+  permissions: string[],
 ): boolean {
+  if (userPermissions.includes('*')) {
+    return true
+  }
+
   return permissions.some((permission) => userPermissions.includes(permission))
 }
 
 export function hasAllPermissions(
   userPermissions: string[],
-  permissions: Permission[],
+  permissions: string[],
 ): boolean {
+  if (userPermissions.includes('*')) {
+    return true
+  }
+
   return permissions.every((permission) => userPermissions.includes(permission))
 }

@@ -8,7 +8,9 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   clearSessionTokenCookie,
   clearTempTokenStorage,
+  setSessionTokenCookie,
 } from '@/lib/auth/clientTokenStorage'
+import { setToken } from './slice/authSlice'
 import { RootState } from './store'
 
 const baseQuery = fetchBaseQuery({
@@ -32,21 +34,41 @@ export const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  const result = await baseQuery(args, api, extraOptions)
+  let result = await baseQuery(args, api, extraOptions)
+
+  const shouldSkipRefresh =
+    typeof args !== 'string' &&
+    (args.url === '/staff/refresh' || args.url === '/staff/login')
+
+  if (result.error && result.error.status === 401 && !shouldSkipRefresh) {
+    const refreshResult = await baseQuery(
+      {
+        url: '/staff/refresh',
+        method: 'POST',
+      },
+      api,
+      extraOptions,
+    )
+
+    const refreshedAccessToken =
+      refreshResult.data && typeof refreshResult.data === 'object'
+        ? ((refreshResult.data as { data?: { accessToken?: string } }).data
+            ?.accessToken ?? null)
+        : null
+
+    if (refreshedAccessToken) {
+      setSessionTokenCookie(refreshedAccessToken)
+      api.dispatch(setToken(refreshedAccessToken))
+      result = await baseQuery(args, api, extraOptions)
+    }
+  }
 
   if (result.error && result.error.status === 401) {
-    // Token expired or invalid
-    console.warn('[Auth] 401 Error - Token likely expired')
-
-    // Clear all auth tokens and state
     clearSessionTokenCookie()
     clearTempTokenStorage()
 
-    // Dispatch clearAuth action
-    const dispatch = api.dispatch
-    dispatch({ type: 'auth/clearAuth' })
+    api.dispatch({ type: 'auth/clearAuth' })
 
-    // Log for debugging
     console.warn('[Auth] Access denied - User session cleared')
   }
 
@@ -73,6 +95,7 @@ export const baseApi = createApi({
     'Subscriptions',
     'Audit',
     'Dashboard',
+    'Rbac',
   ],
   endpoints: () => ({}),
 })

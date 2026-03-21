@@ -47,17 +47,17 @@ export function BooksList() {
       key: 'availableCopies',
       label: t('books.availableCopies'),
       sortable: true,
-      render: (value, row) => `${value}/${row.totalCopies}`,
+      render: (value, row) => `${String(value)}/${row.totalCopies}`,
     },
     {
       key: 'featured',
       label: t('books.featured'),
-      render: (value) => (value ? '✓' : '–'),
+      render: (value) => (Boolean(value) ? '✓' : '–'),
     },
     {
       key: 'available',
       label: t('books.available'),
-      render: (value) => (value ? '✓' : '–'),
+      render: (value) => (Boolean(value) ? '✓' : '–'),
     },
   ]
 

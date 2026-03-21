@@ -82,14 +82,10 @@ export function TwoFactorVerifyForm() {
     setSubmitError(null)
 
     try {
-      const verifyEnvelope = await verify2FA({
+      const response = await verify2FA({
         tempToken,
         otp: values.otp,
       }).unwrap()
-      const response =
-        'data' in verifyEnvelope
-          ? (verifyEnvelope.data as { token: string; staff: unknown })
-          : (verifyEnvelope as { token: string; staff: unknown })
 
       setSessionTokenCookie(response.token)
       clearTempTokenStorage()
@@ -103,11 +99,7 @@ export function TwoFactorVerifyForm() {
         }),
       )
 
-      const meEnvelope = await getStaffMe().unwrap()
-      const meResponse =
-        'data' in meEnvelope
-          ? (meEnvelope.data as { permissions?: string[] })
-          : (meEnvelope as { permissions?: string[] })
+      const meResponse = await getStaffMe().unwrap()
       dispatch(setPermissions(meResponse.permissions || []))
 
       router.push(`/${locale}/dashboard`)

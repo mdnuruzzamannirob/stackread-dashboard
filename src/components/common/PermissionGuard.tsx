@@ -1,5 +1,9 @@
 'use client'
 
+import {
+  hasPermission as canAccessPermission,
+  hasAnyPermission,
+} from '@/lib/auth/permissions'
 import { useAppSelector } from '@/store/store'
 import { useTranslations } from 'next-intl'
 import { ReactNode } from 'react'
@@ -24,11 +28,11 @@ export function PermissionGuard({
   }
 
   // Check if user has required permission(s)
-  const hasPermission = Array.isArray(requiredPermission)
-    ? requiredPermission.some((perm) => permissions.includes(perm))
-    : permissions.includes(requiredPermission)
+  const isAllowed = Array.isArray(requiredPermission)
+    ? hasAnyPermission(permissions, requiredPermission)
+    : canAccessPermission(permissions, requiredPermission)
 
-  if (!hasPermission) {
+  if (!isAllowed) {
     return (
       fallback || (
         <div className="rounded-lg border border-border bg-card p-6 text-center py-12">

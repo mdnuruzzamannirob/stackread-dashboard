@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -72,11 +73,9 @@ export function StaffLoginForm() {
     setSubmitError(null)
 
     try {
-      const loginEnvelope = await loginStaff(values).unwrap()
-      const response =
-        'data' in loginEnvelope
-          ? (loginEnvelope.data as NonNullable<LoginStaffResponse>)
-          : (loginEnvelope as NonNullable<LoginStaffResponse>)
+      const response = (await loginStaff(
+        values,
+      ).unwrap()) as NonNullable<LoginStaffResponse>
 
       if (response.mustSetup2FA && response.tempToken) {
         setTempTokenStorage(response.tempToken, 'setup')
@@ -112,11 +111,7 @@ export function StaffLoginForm() {
           }),
         )
 
-        const meEnvelope = await getStaffMe().unwrap()
-        const meResponse =
-          'data' in meEnvelope
-            ? (meEnvelope.data as { permissions?: string[] })
-            : (meEnvelope as { permissions?: string[] })
+        const meResponse = await getStaffMe().unwrap()
         dispatch(setPermissions(meResponse.permissions || []))
 
         router.push(`/${locale}/dashboard`)
@@ -204,6 +199,13 @@ export function StaffLoginForm() {
           <Button type="submit" disabled={isLoading} className="h-10 w-full">
             {isLoading ? t('signingIn') : t('login')}
           </Button>
+
+          <Link
+            href={`/${locale}/forgot-password`}
+            className="inline-block text-sm text-primary underline-offset-4 hover:underline"
+          >
+            {t('forgotPassword')}
+          </Link>
         </form>
       </div>
     </motion.div>

@@ -4,16 +4,17 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import {
-  acceptInviteSchema,
-  type AcceptInviteSchema,
+  resetPasswordSchema,
+  type ResetPasswordSchema,
 } from '@/lib/validations/auth'
-import { useAcceptInviteMutation } from '@/store/api/authApi'
+import { useResetStaffPasswordMutation } from '@/store/api/authApi'
 
 function getErrorMessage(error: unknown, fallback: string): string {
   if (typeof error === 'object' && error && 'data' in error) {
@@ -33,45 +34,43 @@ function getErrorMessage(error: unknown, fallback: string): string {
   return fallback
 }
 
-interface AcceptInviteFormProps {
-  token: string
-}
-
-export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
+export function ResetPasswordForm() {
   const t = useTranslations('auth')
   const locale = useLocale()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const resetToken = searchParams.get('token') || ''
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [acceptInvite, { isLoading }] = useAcceptInviteMutation()
+
+  const [resetPassword, { isLoading }] = useResetStaffPasswordMutation()
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<AcceptInviteSchema>({
-    resolver: zodResolver(acceptInviteSchema),
+  } = useForm<ResetPasswordSchema>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      token,
-      name: '',
-      password: '',
+      resetToken,
+      newPassword: '',
       confirmPassword: '',
     },
   })
 
-  const onSubmit = async (values: AcceptInviteSchema) => {
+  const onSubmit = async (values: ResetPasswordSchema) => {
     setSubmitError(null)
 
     try {
-      await acceptInvite({
-        token: values.token,
-        password: values.password,
+      await resetPassword({
+        resetToken: values.resetToken,
+        newPassword: values.newPassword,
       }).unwrap()
       router.push(`/${locale}/login`)
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('invalidCredentials')))
+      setSubmitError(getErrorMessage(error, t('resetPasswordFailed')))
     }
   }
 
@@ -84,47 +83,27 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
     >
       <div className="rounded-2xl border border-border/80 bg-card/95 p-6 shadow-lg">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t('acceptInvite')}
+          {t('resetPasswordTitle')}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {t('acceptInviteDesc')}
-        </p>
-        <p className="mt-2 text-sm font-medium text-primary">
-          {t('setupRequired')}
+          {t('resetPasswordDesc')}
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-          <input type="hidden" {...register('token')} />
+          <input type="hidden" {...register('resetToken')} />
 
           <div className="space-y-1.5">
-            <label htmlFor="name" className="text-sm font-medium">
-              {t('yourName')}
-            </label>
-            <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              placeholder={t('namePlaceholder')}
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-              {...register('name')}
-            />
-            {errors.name?.message ? (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            ) : null}
-          </div>
-
-          <div className="space-y-1.5">
-            <label htmlFor="password" className="text-sm font-medium">
+            <label htmlFor="newPassword" className="text-sm font-medium">
               {t('newPassword')}
             </label>
             <div className="relative">
               <input
-                id="password"
+                id="newPassword"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 placeholder={t('passwordPlaceholder')}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-                {...register('password')}
+                {...register('newPassword')}
               />
               <button
                 type="button"
@@ -141,9 +120,9 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
                 )}
               </button>
             </div>
-            {errors.password?.message ? (
+            {errors.newPassword?.message ? (
               <p className="text-sm text-destructive">
-                {errors.password.message}
+                {errors.newPassword.message}
               </p>
             ) : null}
           </div>
@@ -188,8 +167,15 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
           ) : null}
 
           <Button type="submit" disabled={isLoading} className="h-10 w-full">
-            {isLoading ? t('acceptingInvite') : t('login')}
+            {isLoading ? t('resettingPassword') : t('resetPassword')}
           </Button>
+
+          <Link
+            href={`/${locale}/login`}
+            className="inline-block text-sm text-primary underline-offset-4 hover:underline"
+          >
+            {t('backToLogin')}
+          </Link>
         </form>
       </div>
     </motion.div>

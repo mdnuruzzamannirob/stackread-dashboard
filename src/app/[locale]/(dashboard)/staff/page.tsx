@@ -1,11 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { StaffManagement } from '@/components/modules/staff/StaffManagement'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function StaffPage() {
-  const t = useTranslations()
   return (
-    <PageHeader title={t('navigation.staff')} description="Staff management" />
+    <PermissionGuard requiredPermission={PERMISSIONS.STAFF_VIEW}>
+      <StaffManagement />
+    </PermissionGuard>
   )
 }
