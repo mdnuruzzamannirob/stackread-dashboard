@@ -70,9 +70,9 @@ export function MultiSelect({
               </div>
             ) : (
               <div className="p-2 space-y-1">
-                {options.map((option) => (
+                {options.map((option, index) => (
                   <label
-                    key={option.id}
+                    key={index}
                     className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
                   >
                     <input
