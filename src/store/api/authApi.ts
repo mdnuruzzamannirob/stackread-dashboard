@@ -106,6 +106,7 @@ export const staffAuthApi = baseApi.injectEndpoints({
         headers: {
           Authorization: `Bearer ${tempToken}`,
         },
+        body: {},
       }),
       transformResponse: (response: ApiEnvelope<SetupTwoFactorResponse>) =>
         response.data,

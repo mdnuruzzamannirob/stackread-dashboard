@@ -9,9 +9,10 @@ import {
   getTempTokenStorage,
 } from '@/lib/auth/clientTokenStorage'
 import { useGetStaffMeQuery } from '@/store/api/authApi'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useAppDispatch } from '@/store/hooks'
 import {
   clearAuth,
+  hydrateAuth,
   setAuth,
   setHydrated,
   setTempAuth,
@@ -20,7 +21,6 @@ import {
 export function AuthHydrator() {
   const dispatch = useAppDispatch()
   const sessionToken = getSessionTokenCookie()
-  const tokenFromState = useAppSelector((state) => state.auth.token)
   const { token: tempToken, mode } = getTempTokenStorage()
   const shouldSkipStaffMe = Boolean(tempToken && mode) && !sessionToken
 
@@ -28,6 +28,7 @@ export function AuthHydrator() {
     skip: shouldSkipStaffMe,
   })
 
+  // Set temp auth when in 2FA flow
   useEffect(() => {
     if (tempToken && mode) {
       dispatch(
@@ -40,16 +41,20 @@ export function AuthHydrator() {
     }
   }, [dispatch, mode, tempToken])
 
+  // Handle auth state hydration
   useEffect(() => {
+    // In 2FA flow - skip staff me call
     if (shouldSkipStaffMe) {
       dispatch(setHydrated())
       return
     }
 
+    // Still loading
     if (isLoading) {
       return
     }
 
+    // API error - clear everything
     if (error) {
       clearSessionTokenCookie()
       clearTempTokenStorage()
@@ -58,26 +63,36 @@ export function AuthHydrator() {
       return
     }
 
-    if (data) {
-      const activeToken = getSessionTokenCookie() ?? tokenFromState
+    // Success - we have staff data
+    if (data?.staff) {
+      const activeToken = getSessionTokenCookie()
 
-      if (!activeToken) {
-        dispatch(setHydrated())
-        return
+      if (activeToken) {
+        dispatch(
+          setAuth({
+            token: activeToken,
+            staff: data.staff,
+            permissions: data.permissions || [],
+            actorType: 'staff',
+          }),
+        )
+      } else {
+        dispatch(
+          hydrateAuth({
+            token: null,
+            staff: data.staff,
+            permissions: data.permissions || [],
+            actorType: 'staff',
+          }),
+        )
       }
 
-      dispatch(
-        setAuth({
-          token: activeToken,
-          staff: data.staff,
-          permissions: data.permissions || [],
-          actorType: 'staff',
-        }),
-      )
+      dispatch(setHydrated())
+    } else {
+      // Query returned no staff payload; leave current auth untouched here.
+      dispatch(setHydrated())
     }
-
-    dispatch(setHydrated())
-  }, [data, dispatch, error, isLoading, shouldSkipStaffMe, tokenFromState])
+  }, [data, dispatch, error, isLoading, shouldSkipStaffMe])
 
   return null
 }

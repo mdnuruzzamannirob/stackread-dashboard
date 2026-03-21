@@ -8,6 +8,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import {
   clearSessionTokenCookie,
   clearTempTokenStorage,
+  getSessionTokenCookie,
   setSessionTokenCookie,
 } from '@/lib/auth/clientTokenStorage'
 import { setToken } from './slice/authSlice'
@@ -18,7 +19,14 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const state = getState() as RootState
 
-    const token = state.auth.token
+    // 1. Try to get token from Redux state first
+    let token = state.auth.token
+
+    // 2. If Redux state doesn't have token, read from cookie
+    // This handles page reload case where Redux is not yet hydrated
+    if (!token) {
+      token = getSessionTokenCookie()
+    }
 
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)

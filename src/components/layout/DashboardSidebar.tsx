@@ -14,7 +14,7 @@ export function DashboardSidebar() {
   const dispatch = useAppDispatch()
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed)
   const permissions = useAppSelector((state) => state.auth.permissions)
-  const staff = useAppSelector((state) => state.auth.staff)
+  const staff = useAppSelector((state) => state.auth)
   const isHydrated = useAppSelector((state) => state.auth.isHydrated)
 
   const pathParts = pathname.split('/')
@@ -96,7 +96,8 @@ export function DashboardSidebar() {
     }
 
     // Show all items for super-admin after hydrated
-    if (staff?.role === 'super-admin') {
+    if (staff.staff?.role === 'super-admin') {
+      console.log('object')
       return true
     }
 
@@ -115,7 +116,7 @@ export function DashboardSidebar() {
       pathWithoutLocale === href || pathWithoutLocale.startsWith(href + '/')
     )
   }
-
+  console.log(staff, navItems)
   return (
     <aside
       className={`fixed left-0 top-16 h-[calc(100vh-4rem)] border-r border-border bg-background transition-all duration-300 ${
@@ -134,7 +135,11 @@ export function DashboardSidebar() {
           )}
         </button>
 
-        <nav className="space-y-2">
+        <nav
+          className={`space-y-2 transition-opacity duration-300 ${
+            !isHydrated ? 'opacity-50 pointer-events-none' : 'opacity-100'
+          }`}
+        >
           {navItems.map((item) => (
             <Link
               key={item.href}

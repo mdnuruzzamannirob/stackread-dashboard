@@ -84,18 +84,30 @@ export function TwoFactorSetupFlow() {
       try {
         const setupResponse = await setup2FA(tempToken).unwrap()
         setSecret(setupResponse.secret)
-        const dataUrl = await QRCode.toDataURL(setupResponse.qrCodeUrl, {
+
+        // Ensure proper URL encoding for QR code
+        const qrCodeUrl = setupResponse.qrCodeUrl || ''
+        if (!qrCodeUrl) {
+          throw new Error('QR code URL not received from server')
+        }
+
+        const dataUrl = await QRCode.toDataURL(qrCodeUrl, {
           margin: 1,
           width: 220,
+          errorCorrectionLevel: 'H',
         })
         setQrCodeImage(dataUrl)
       } catch (error) {
-        setSetupError(getErrorMessage(error, t('invalidCredentials')))
+        const message =
+          error instanceof Error
+            ? error.message
+            : getErrorMessage(error, t('invalidCredentials'))
+        setSetupError(message)
       }
     }
 
     void runSetup()
-  }, [locale, router, setup2FA, t, tempToken])
+  }, [tempToken, router, locale, t, setup2FA])
 
   const canContinue = useMemo(
     () => Boolean(qrCodeImage && secret),
