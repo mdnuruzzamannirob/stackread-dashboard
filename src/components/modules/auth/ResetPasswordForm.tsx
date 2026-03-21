@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -68,9 +69,12 @@ export function ResetPasswordForm() {
         resetToken: values.resetToken,
         newPassword: values.newPassword,
       }).unwrap()
+      toast.success(t('resetPasswordSuccess'))
       router.push(`/${locale}/login`)
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('resetPasswordFailed')))
+      const message = getErrorMessage(error, t('resetPasswordFailed'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 

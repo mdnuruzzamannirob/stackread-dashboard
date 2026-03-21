@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -57,11 +58,14 @@ export function ForgotPasswordForm() {
 
     try {
       await forgotPassword(values.email).unwrap()
+      toast.success(t('resetCodeSent'))
       router.push(
         `/${locale}/verify-reset-otp?email=${encodeURIComponent(values.email)}`,
       )
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('forgotPasswordFailed')))
+      const message = getErrorMessage(error, t('forgotPasswordFailed'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 

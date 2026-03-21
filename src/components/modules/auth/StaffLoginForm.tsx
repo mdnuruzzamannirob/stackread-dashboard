@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -78,6 +79,7 @@ export function StaffLoginForm() {
       ).unwrap()) as NonNullable<LoginStaffResponse>
 
       if (response.mustSetup2FA && response.tempToken) {
+        toast.info(t('setupRequired'))
         setTempTokenStorage(response.tempToken, 'setup')
         dispatch(
           setTempAuth({
@@ -90,6 +92,7 @@ export function StaffLoginForm() {
       }
 
       if (response.requiresTwoFactor && response.tempToken) {
+        toast.info(t('twoFactorRequired'))
         setTempTokenStorage(response.tempToken, 'verify')
         dispatch(
           setTempAuth({
@@ -113,14 +116,18 @@ export function StaffLoginForm() {
 
         const meResponse = await getStaffMe().unwrap()
         dispatch(setPermissions(meResponse.permissions || []))
+        toast.success(t('loginSuccess'))
 
         router.push(`/${locale}/dashboard`)
         return
       }
 
       setSubmitError(t('invalidCredentials'))
+      toast.error(t('invalidCredentials'))
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('invalidCredentials')))
+      const message = getErrorMessage(error, t('invalidCredentials'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 

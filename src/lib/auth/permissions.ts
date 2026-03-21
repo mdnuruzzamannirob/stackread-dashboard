@@ -5,11 +5,9 @@ export const PERMISSIONS = {
 
   // Authors
   AUTHORS_MANAGE: 'authors.manage',
-  AUTHORS_VIEW: 'authors.view',
 
   // Books
   BOOKS_MANAGE: 'books.manage',
-  BOOKS_VIEW: 'books.view',
 
   // Borrows
   BORROWS_MANAGE: 'borrows.manage',
@@ -17,7 +15,6 @@ export const PERMISSIONS = {
 
   // Categories
   CATEGORIES_MANAGE: 'categories.manage',
-  CATEGORIES_VIEW: 'categories.view',
 
   // Members
   MEMBERS_MANAGE: 'members.manage',
@@ -57,7 +54,7 @@ export const PERMISSIONS = {
   SETTINGS_MANAGE: 'settings.manage',
   SETTINGS_VIEW: 'settings.view',
 
-  // Staff Management
+  // Staff
   STAFF_MANAGE: 'staff.manage',
   STAFF_VIEW: 'staff.view',
 

@@ -29,7 +29,7 @@ export function ActivityFeed({
   const locale = useLocale()
   const dateLocale = locale === 'bn' ? bn : enUS
 
-  const displayActivities = activities.slice(0, maxItems)
+  const displayActivities = activities?.slice(0, maxItems)
 
   const getActionLabel = (action: string): string => {
     const actionMap: Record<string, string> = {

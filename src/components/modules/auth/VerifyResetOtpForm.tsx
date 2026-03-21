@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
@@ -73,11 +74,14 @@ export function VerifyResetOtpForm() {
 
     try {
       const response = await verifyResetOtp(values).unwrap()
+      toast.success(t('resetOtpVerified'))
       router.push(
         `/${locale}/reset-password?token=${encodeURIComponent(response.resetToken)}`,
       )
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('invalidResetOtp')))
+      const message = getErrorMessage(error, t('invalidResetOtp'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 
@@ -87,14 +91,18 @@ export function VerifyResetOtpForm() {
 
     if (!emailValue) {
       setSubmitError(t('invalidCredentials'))
+      toast.error(t('invalidCredentials'))
       return
     }
 
     try {
       await resendResetOtp(emailValue).unwrap()
       setSuccessMessage(t('resetOtpResent'))
+      toast.success(t('resetOtpResent'))
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('resetOtpResendFailed')))
+      const message = getErrorMessage(error, t('resetOtpResendFailed'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 

@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -55,7 +56,6 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
     resolver: zodResolver(acceptInviteSchema),
     defaultValues: {
       token,
-      name: '',
       password: '',
       confirmPassword: '',
     },
@@ -69,9 +69,12 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
         token: values.token,
         password: values.password,
       }).unwrap()
+      toast.success(t('inviteActivated'))
       router.push(`/${locale}/login`)
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('invalidCredentials')))
+      const message = getErrorMessage(error, t('invalidCredentials'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 
@@ -95,23 +98,6 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
           <input type="hidden" {...register('token')} />
-
-          <div className="space-y-1.5">
-            <label htmlFor="name" className="text-sm font-medium">
-              {t('yourName')}
-            </label>
-            <input
-              id="name"
-              type="text"
-              autoComplete="name"
-              placeholder={t('namePlaceholder')}
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-              {...register('name')}
-            />
-            {errors.name?.message ? (
-              <p className="text-sm text-destructive">{errors.name.message}</p>
-            ) : null}
-          </div>
 
           <div className="space-y-1.5">
             <label htmlFor="password" className="text-sm font-medium">
@@ -188,7 +174,7 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
           ) : null}
 
           <Button type="submit" disabled={isLoading} className="h-10 w-full">
-            {isLoading ? t('acceptingInvite') : t('login')}
+            {isLoading ? t('acceptingInvite') : t('activateAccount')}
           </Button>
         </form>
       </div>

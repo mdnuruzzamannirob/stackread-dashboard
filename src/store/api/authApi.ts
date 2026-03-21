@@ -127,15 +127,15 @@ export const staffAuthApi = baseApi.injectEndpoints({
     }),
     verify2FA: builder.mutation<
       AuthSuccessResponse,
-      { tempToken: string; otp: string }
+      { tempToken: string; otp?: string; emailOtp?: string }
     >({
-      query: ({ tempToken, otp }) => ({
+      query: ({ tempToken, otp, emailOtp }) => ({
         url: '/staff/2fa/verify',
         method: 'POST',
         headers: {
           Authorization: `Bearer ${tempToken}`,
         },
-        body: { otp },
+        body: { otp, emailOtp },
       }),
       transformResponse: (response: ApiEnvelope<AuthSuccessResponse>) =>
         response.data,

@@ -14,6 +14,8 @@ export function DashboardSidebar() {
   const dispatch = useAppDispatch()
   const sidebarCollapsed = useAppSelector((state) => state.ui.sidebarCollapsed)
   const permissions = useAppSelector((state) => state.auth.permissions)
+  const staff = useAppSelector((state) => state.auth.staff)
+  const isHydrated = useAppSelector((state) => state.auth.isHydrated)
 
   const pathParts = pathname.split('/')
   const locale = pathParts[1] || 'en'
@@ -23,17 +25,14 @@ export function DashboardSidebar() {
     {
       label: 'navigation.books',
       href: '/books',
-      requiredPermission: PERMISSIONS.BOOKS_VIEW,
     },
     {
       label: 'navigation.authors',
       href: '/authors',
-      requiredPermission: PERMISSIONS.AUTHORS_VIEW,
     },
     {
       label: 'navigation.categories',
       href: '/categories',
-      requiredPermission: PERMISSIONS.CATEGORIES_VIEW,
     },
     {
       label: 'navigation.staff',
@@ -90,11 +89,22 @@ export function DashboardSidebar() {
       href: '/audit',
       requiredPermission: PERMISSIONS.AUDIT_VIEW,
     },
-  ].filter((item) =>
-    item.requiredPermission
+  ].filter((item) => {
+    // Show all items if still hydrating (loading auth state)
+    if (!isHydrated) {
+      return true
+    }
+
+    // Show all items for super-admin after hydrated
+    if (staff?.role === 'super-admin') {
+      return true
+    }
+
+    // For regular users, check permission after hydrated
+    return item.requiredPermission
       ? hasPermission(permissions, item.requiredPermission)
-      : true,
-  )
+      : true
+  })
 
   const isActive = (href: string): boolean => {
     // Remove locale prefix from pathname for comparison

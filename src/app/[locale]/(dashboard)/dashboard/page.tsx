@@ -28,7 +28,6 @@ export default function DashboardPage() {
     )
   }
 
-  console.log(overviewData)
   return (
     <div className="space-y-6">
       <PageHeader
@@ -59,7 +58,7 @@ export default function DashboardPage() {
           />
 
           <ActivityFeed
-            activities={auditData?.data || overviewData.activityLog}
+            activities={auditData?.data ?? overviewData.activityLog ?? []}
             isLoading={isAuditLoading}
             maxItems={10}
           />

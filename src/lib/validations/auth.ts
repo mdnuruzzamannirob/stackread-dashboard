@@ -11,13 +11,17 @@ export const enable2FASchema = z.object({
   otp: otpSchema,
 })
 
-export const verify2FASchema = z.object({
-  otp: otpSchema,
-})
+export const verify2FASchema = z
+  .object({
+    otp: z.string().optional(),
+    emailOtp: z.string().optional(),
+  })
+  .refine((data) => data.otp || data.emailOtp, {
+    message: 'Enter either authenticator code or email code',
+  })
 
 export const acceptInviteSchema = z
   .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
     token: z.string().min(1, 'Invite token is required'),

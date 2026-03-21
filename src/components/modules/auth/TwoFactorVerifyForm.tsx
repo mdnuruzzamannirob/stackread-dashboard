@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ import {
 import { verify2FASchema, type Verify2FASchema } from '@/lib/validations/auth'
 import {
   useLazyGetStaffMeQuery,
+  useSendStaff2FAEmailOtpMutation,
   useVerify2FAMutation,
 } from '@/store/api/authApi'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -53,19 +55,28 @@ export function TwoFactorVerifyForm() {
   const tempToken = useAppSelector((state) => state.auth.tempToken)
 
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [method, setMethod] = useState<'totp' | 'email'>('totp')
   const [verify2FA, { isLoading }] = useVerify2FAMutation()
+  const [sendEmailOtp, { isLoading: isSendingEmailOtp }] =
+    useSendStaff2FAEmailOtpMutation()
   const [getStaffMe] = useLazyGetStaffMeQuery()
 
   const {
     control,
     handleSubmit,
     formState: { errors },
+    watch,
+    reset,
   } = useForm<Verify2FASchema>({
     resolver: zodResolver(verify2FASchema),
     defaultValues: {
       otp: '',
+      emailOtp: '',
     },
   })
+
+  const otpValue = watch('otp') || ''
+  const emailOtpValue = watch('emailOtp') || ''
 
   useEffect(() => {
     if (!tempToken) {
@@ -82,10 +93,14 @@ export function TwoFactorVerifyForm() {
     setSubmitError(null)
 
     try {
-      const response = await verify2FA({
+      const payload = {
         tempToken,
-        otp: values.otp,
-      }).unwrap()
+        ...(method === 'email' && emailOtpValue
+          ? { emailOtp: emailOtpValue }
+          : { otp: otpValue }),
+      }
+
+      const response = await verify2FA(payload as any).unwrap()
 
       setSessionTokenCookie(response.token)
       clearTempTokenStorage()
@@ -101,10 +116,33 @@ export function TwoFactorVerifyForm() {
 
       const meResponse = await getStaffMe().unwrap()
       dispatch(setPermissions(meResponse.permissions || []))
+      toast.success(t('twoFactorVerified'))
 
       router.push(`/${locale}/dashboard`)
     } catch (error) {
-      setSubmitError(getErrorMessage(error, t('invalidCredentials')))
+      const message = getErrorMessage(error, t('invalidCredentials'))
+      setSubmitError(message)
+      toast.error(message)
+    }
+  }
+
+  const onSendEmailOtp = async () => {
+    if (!tempToken) {
+      router.replace(`/${locale}/login`)
+      return
+    }
+
+    setSubmitError(null)
+
+    try {
+      await sendEmailOtp(tempToken).unwrap()
+      setMethod('email')
+      reset()
+      toast.success(t('twoFactorEmailOtpSent'))
+    } catch (error) {
+      const message = getErrorMessage(error, t('twoFactorEmailOtpSendFailed'))
+      setSubmitError(message)
+      toast.error(message)
     }
   }
 
@@ -120,26 +158,46 @@ export function TwoFactorVerifyForm() {
           {t('twoFactorVerify')}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {t('twoFactorVerifyDesc')}
+          {method === 'email'
+            ? 'Enter the code sent to your email'
+            : t('twoFactorVerifyDesc')}
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-          <Controller
-            control={control}
-            name="otp"
-            render={({ field }) => (
-              <OTPInput
-                id="otp"
-                value={field.value}
-                onChange={field.onChange}
-                placeholder={t('otpPlaceholder')}
-                disabled={isLoading}
-              />
-            )}
-          />
+          {method === 'totp' ? (
+            <Controller
+              control={control}
+              name="otp"
+              render={({ field }) => (
+                <OTPInput
+                  id="otp"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  placeholder={t('otpPlaceholder')}
+                  disabled={isLoading}
+                />
+              )}
+            />
+          ) : (
+            <Controller
+              control={control}
+              name="emailOtp"
+              render={({ field }) => (
+                <OTPInput
+                  id="emailOtp"
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  placeholder={t('otpPlaceholder')}
+                  disabled={isLoading}
+                />
+              )}
+            />
+          )}
 
-          {errors.otp?.message ? (
-            <p className="text-sm text-destructive">{errors.otp.message}</p>
+          {errors[method === 'email' ? 'emailOtp' : 'otp']?.message ? (
+            <p className="text-sm text-destructive">
+              {errors[method === 'email' ? 'emailOtp' : 'otp']?.message}
+            </p>
           ) : null}
           {submitError ? (
             <p className="text-sm text-destructive">{submitError}</p>
@@ -148,6 +206,33 @@ export function TwoFactorVerifyForm() {
           <Button type="submit" disabled={isLoading} className="h-10 w-full">
             {isLoading ? t('verifying') : t('submitCode')}
           </Button>
+
+          {method === 'totp' ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onSendEmailOtp}
+              disabled={isSendingEmailOtp}
+              className="h-10 w-full"
+            >
+              {isSendingEmailOtp
+                ? t('sendingTwoFactorEmailOtp')
+                : t('sendTwoFactorEmailOtp')}
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setMethod('totp')
+                reset()
+              }}
+              disabled={isLoading}
+              className="h-10 w-full"
+            >
+              Use Authenticator App
+            </Button>
+          )}
 
           <Link
             href={`/${locale}/login`}

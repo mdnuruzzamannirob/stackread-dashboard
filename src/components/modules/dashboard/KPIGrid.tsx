@@ -22,15 +22,19 @@ export interface KPIGridProps {
 export function KPIGrid({ stats, growth }: KPIGridProps) {
   const t = useTranslations()
 
+  const toSafeNumber = (value: number): number => {
+    return Number.isFinite(value) ? value : 0
+  }
+
   const formatNumber = (num: number) => {
-    return new Intl.NumberFormat('en-US').format(num)
+    return new Intl.NumberFormat('en-US').format(toSafeNumber(num))
   }
 
   const formatCurrency = (num: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-    }).format(num)
+    }).format(toSafeNumber(num))
   }
 
   return (
