@@ -1,6 +1,14 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { FieldError } from '@/components/common/FieldError'
 import { MultiSelect } from '@/components/common/MultiSelect'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import { useGetAuthorsQuery } from '@/store/api/authorsApi'
 import {
   Book,
@@ -167,6 +175,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [deletingFile, setDeletingFile] = useState<BookFile | null>(null)
   const existingFiles = useMemo(() => book?.files || [], [book?.files])
 
   const {
@@ -344,22 +353,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
     }
   }
 
-  const handleDeleteFile = async (file: BookFile) => {
+  const handleDeleteFile = async () => {
     if (!book?._id) {
       return
     }
 
-    const confirmed = window.confirm(
-      `Delete the file "${file.originalFileName}" from this book?`,
-    )
-
-    if (!confirmed) {
+    if (!deletingFile) {
       return
     }
 
     try {
-      await deleteBookFile({ id: book._id, fileId: file.id }).unwrap()
-      toast.success(`Removed "${file.originalFileName}"`)
+      await deleteBookFile({ id: book._id, fileId: deletingFile.id }).unwrap()
+      toast.success(`Removed "${deletingFile.originalFileName}"`)
+      setDeletingFile(null)
     } catch (error) {
       const message =
         error instanceof Error && error.message
@@ -371,7 +377,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl border border-border shadow-lg max-w-5xl w-full max-h-[92vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="text-lg font-semibold">
             {book ? t('books.editBook') : t('books.addBook')}
@@ -387,119 +393,81 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto p-6 space-y-4"
+          className="flex-1 overflow-y-auto p-6 space-y-6"
         >
-          {/* Title */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               {t('common.title')}
               <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            </Label>
+            <Input
               {...register('title')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.title
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.title)}
               placeholder="Book title (2-200 characters)"
             />
-            {errors.title && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.title.message}
-              </p>
-            )}
+            <FieldError message={errors.title?.message} />
           </div>
 
-          {/* Slug */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               Slug
               <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            </Label>
+            <Input
               {...register('slug')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.slug
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.slug)}
               placeholder="book-title-slug"
             />
-            {errors.slug && (
-              <p className="text-red-600 text-xs mt-1">{errors.slug.message}</p>
-            )}
+            <FieldError message={errors.slug?.message} />
           </div>
 
-          {/* Summary */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               Summary
               <span className="text-red-500">*</span>
-            </label>
-            <textarea
+            </Label>
+            <Textarea
               {...register('summary')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background resize-none transition ${
-                errors.summary
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.summary)}
               rows={3}
               placeholder="Book summary (10-2000 characters)"
             />
-            {errors.summary && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.summary.message}
-              </p>
-            )}
+            <FieldError message={errors.summary?.message} />
           </div>
 
-          {/* ISBN & Edition */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                {t('books.isbn')}
-              </label>
-              <input
-                type="text"
+              <Label className="mb-2 block">
+                {t('books.isbn')}{' '}
+                <span className="text-xs text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Input
                 {...register('isbn')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.isbn
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.isbn)}
                 placeholder="ISBN (8-40 chars)"
               />
-              {errors.isbn && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.isbn.message}
-                </p>
-              )}
+              <FieldError message={errors.isbn?.message} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">Edition</label>
-              <input
-                type="text"
+              <Label className="mb-2 block">
+                Edition{' '}
+                <span className="text-xs text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Input
                 {...register('edition')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.edition
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.edition)}
                 placeholder="First Edition"
               />
-              {errors.edition && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.edition.message}
-                </p>
-              )}
+              <FieldError message={errors.edition?.message} />
             </div>
           </div>
 
@@ -548,47 +516,33 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
             />
           </div>
 
-          {/* Language & Publication Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Language</label>
-              <select
+              <Label className="mb-2 block">Language</Label>
+              <Select
                 {...register('language')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.language
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.language)}
               >
                 <option value="en">English</option>
                 <option value="bn">Bangla</option>
-              </select>
-              {errors.language && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.language.message}
-                </p>
-              )}
+              </Select>
+              <FieldError message={errors.language?.message} />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Publication Date
-              </label>
-              <input
+              <Label className="mb-2 block">
+                Publication Date{' '}
+                <span className="text-xs text-muted-foreground">
+                  (optional)
+                </span>
+              </Label>
+              <Input
                 type="date"
                 {...register('publicationDate')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.publicationDate
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.publicationDate)}
               />
-              {errors.publicationDate && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.publicationDate.message}
-                </p>
-              )}
+              <FieldError message={errors.publicationDate?.message} />
             </div>
           </div>
 
@@ -620,14 +574,10 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               <label className="block text-sm font-medium mb-2">
                 Publisher
               </label>
-              <select
+              <Select
                 {...register('publisherId')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.publisherId
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.publisherId)}
               >
                 <option value="">No publisher</option>
                 {publishersData?.data?.map((publisher) => (
@@ -635,7 +585,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                     {publisher.name}
                   </option>
                 ))}
-              </select>
+              </Select>
               {errors.publisherId && (
                 <p className="text-red-600 text-xs mt-1">
                   {errors.publisherId.message}
@@ -875,15 +825,15 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
-                      <button
+                      <Button
+                        variant="outline"
                         type="button"
-                        onClick={() => handleDeleteFile(file)}
+                        onClick={() => setDeletingFile(file)}
                         disabled={isLoading}
-                        className="inline-flex items-center gap-2 self-start rounded-lg border border-destructive/30 px-3 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 disabled:opacity-50"
                       >
                         <Trash2 className="size-3.5" />
                         Remove
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -891,58 +841,48 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
             )}
           </div>
 
-          {/* Checkboxes */}
           <div className="grid grid-cols-3 gap-4">
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                {...register('featured')}
-                disabled={isLoading}
-                className="rounded border-border cursor-pointer disabled:opacity-50"
-              />
+            <Label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox {...register('featured')} disabled={isLoading} />
               <span>{t('books.featured')}</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                {...register('isAvailable')}
-                disabled={isLoading}
-                className="rounded border-border cursor-pointer disabled:opacity-50"
-              />
+            </Label>
+            <Label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox {...register('isAvailable')} disabled={isLoading} />
               <span>{t('books.available')}</span>
-            </label>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                {...register('isPublished')}
-                disabled={isLoading}
-                className="rounded border-border cursor-pointer disabled:opacity-50"
-              />
+            </Label>
+            <Label className="flex items-center gap-2 text-sm cursor-pointer">
+              <Checkbox {...register('isPublished')} disabled={isLoading} />
               <span>Published</span>
-            </label>
+            </Label>
           </div>
 
-          {/* Form Actions */}
           <div className="flex gap-2 pt-6 border-t border-border">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading && <Loader2 className="size-4 animate-spin" />}
               {isLoading ? t('common.saving') : t('common.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
+
+      {deletingFile && (
+        <ConfirmDialog
+          title="Delete file"
+          description={`Delete "${deletingFile.originalFileName}" from this book?`}
+          isDangerous
+          isLoading={isLoading}
+          onCancel={() => setDeletingFile(null)}
+          onConfirm={handleDeleteFile}
+        />
+      )}
     </div>
   )
 }

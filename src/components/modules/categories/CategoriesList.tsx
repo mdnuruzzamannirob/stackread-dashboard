@@ -1,5 +1,6 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DataTable, DataTableColumn } from '@/components/common/DataTable'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
@@ -25,6 +26,9 @@ export function CategoriesList() {
     useDeleteCategoryMutation()
   const [showDialog, setShowDialog] = useState(false)
   const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deletingCategory, setDeletingCategory] = useState<Category | null>(
+    null,
+  )
 
   const handleAdd = () => {
     setEditingCategory(null)
@@ -41,16 +45,15 @@ export function CategoriesList() {
     setEditingCategory(null)
   }
 
-  const handleDelete = async (category: Category) => {
-    const confirmed = window.confirm(t('common.confirmDelete'))
-
-    if (!confirmed) {
+  const handleDelete = async () => {
+    if (!deletingCategory) {
       return
     }
 
     try {
-      await deleteCategory(category._id).unwrap()
+      await deleteCategory(deletingCategory._id).unwrap()
       toast.success(t('common.success'))
+      setDeletingCategory(null)
     } catch {
       toast.error(t('errors.serverError'))
     }
@@ -119,7 +122,7 @@ export function CategoriesList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={setDeletingCategory}
         searchPlaceholder={`${t('common.search')} categories...`}
         noDataMessage={t('categories.noCategories')}
         onSearchChange={(value) => {
@@ -136,6 +139,17 @@ export function CategoriesList() {
         <CategoryFormDialog
           category={editingCategory}
           onClose={handleCloseDialog}
+        />
+      )}
+
+      {deletingCategory && (
+        <ConfirmDialog
+          title={t('common.confirmDelete')}
+          description={`Delete category "${deletingCategory.name}"?`}
+          isDangerous
+          isLoading={isDeleting}
+          onCancel={() => setDeletingCategory(null)}
+          onConfirm={handleDelete}
         />
       )}
     </div>

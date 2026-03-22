@@ -1,5 +1,6 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DataTable, DataTableColumn } from '@/components/common/DataTable'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
@@ -24,6 +25,7 @@ export function AuthorsList() {
   const [deleteAuthor, { isLoading: isDeleting }] = useDeleteAuthorMutation()
   const [showDialog, setShowDialog] = useState(false)
   const [editingAuthor, setEditingAuthor] = useState<Author | null>(null)
+  const [deletingAuthor, setDeletingAuthor] = useState<Author | null>(null)
 
   const handleAdd = () => {
     setEditingAuthor(null)
@@ -40,16 +42,15 @@ export function AuthorsList() {
     setEditingAuthor(null)
   }
 
-  const handleDelete = async (author: Author) => {
-    const confirmed = window.confirm(t('common.confirmDelete'))
-
-    if (!confirmed) {
+  const handleDelete = async () => {
+    if (!deletingAuthor) {
       return
     }
 
     try {
-      await deleteAuthor(author._id).unwrap()
+      await deleteAuthor(deletingAuthor._id).unwrap()
       toast.success(t('common.success'))
+      setDeletingAuthor(null)
     } catch {
       toast.error(t('errors.serverError'))
     }
@@ -118,7 +119,7 @@ export function AuthorsList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={setDeletingAuthor}
         searchPlaceholder={`${t('common.search')} authors...`}
         noDataMessage={t('authors.noAuthors')}
         onSearchChange={(value) => {
@@ -133,6 +134,17 @@ export function AuthorsList() {
 
       {showDialog && (
         <AuthorFormDialog author={editingAuthor} onClose={handleCloseDialog} />
+      )}
+
+      {deletingAuthor && (
+        <ConfirmDialog
+          title={t('common.confirmDelete')}
+          description={`Delete author "${deletingAuthor.name}"?`}
+          isDangerous
+          isLoading={isDeleting}
+          onCancel={() => setDeletingAuthor(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </div>
   )

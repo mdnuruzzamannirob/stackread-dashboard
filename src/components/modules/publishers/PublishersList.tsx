@@ -1,5 +1,6 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DataTable, DataTableColumn } from '@/components/common/DataTable'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
@@ -27,6 +28,9 @@ export function PublishersList() {
   const [editingPublisher, setEditingPublisher] = useState<Publisher | null>(
     null,
   )
+  const [deletingPublisher, setDeletingPublisher] = useState<Publisher | null>(
+    null,
+  )
 
   const handleAdd = () => {
     setEditingPublisher(null)
@@ -43,16 +47,15 @@ export function PublishersList() {
     setEditingPublisher(null)
   }
 
-  const handleDelete = async (publisher: Publisher) => {
-    const confirmed = window.confirm(t('common.confirmDelete'))
-
-    if (!confirmed) {
+  const handleDelete = async () => {
+    if (!deletingPublisher) {
       return
     }
 
     try {
-      await deletePublisher(publisher._id).unwrap()
+      await deletePublisher(deletingPublisher._id).unwrap()
       toast.success(t('common.success'))
+      setDeletingPublisher(null)
     } catch {
       toast.error(t('errors.serverError'))
     }
@@ -126,7 +129,7 @@ export function PublishersList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={setDeletingPublisher}
         searchPlaceholder={`${t('common.search')} publishers...`}
         noDataMessage={t('publishers.noPublishers')}
         onSearchChange={(value) => {
@@ -143,6 +146,17 @@ export function PublishersList() {
         <PublisherFormDialog
           publisher={editingPublisher}
           onClose={handleCloseDialog}
+        />
+      )}
+
+      {deletingPublisher && (
+        <ConfirmDialog
+          title={t('common.confirmDelete')}
+          description={`Delete publisher "${deletingPublisher.name}"?`}
+          isDangerous
+          isLoading={isDeleting}
+          onCancel={() => setDeletingPublisher(null)}
+          onConfirm={handleDelete}
         />
       )}
     </div>

@@ -4,13 +4,17 @@ import {
   ChevronDown,
   ChevronUp,
   ChevronsUpDown,
-  Delete,
-  Edit,
+  Eye,
+  Pencil,
   Plus,
   Search,
+  Trash2,
 } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 export interface DataTableColumn<T> {
   key: keyof T
@@ -27,6 +31,7 @@ export interface DataTableProps<T> {
   onAdd?: () => void
   onEdit?: (row: T) => void
   onDelete?: (row: T) => void
+  onView?: (row: T) => void
   searchable?: boolean
   searchPlaceholder?: string
   noDataMessage?: string
@@ -47,6 +52,7 @@ export function DataTable<T>({
   onAdd,
   onEdit,
   onDelete,
+  onView,
   searchable = true,
   searchPlaceholder,
   noDataMessage,
@@ -143,7 +149,7 @@ export function DataTable<T>({
         {searchable && (
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
+            <Input
               type="text"
               placeholder={searchPlaceholder || t('common.search')}
               value={searchTerm}
@@ -152,18 +158,15 @@ export function DataTable<T>({
                 setSearchTerm(value)
                 onSearchChange?.(value)
               }}
-              className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
+              className="pl-10"
             />
           </div>
         )}
         {onAdd && (
-          <button
-            onClick={onAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-          >
+          <Button onClick={onAdd} className="h-10 gap-2 px-4">
             <Plus className="size-4" />
             {t('common.add')}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -189,7 +192,7 @@ export function DataTable<T>({
                   )}
                 </th>
               ))}
-              {(onEdit || onDelete) && (
+              {(onView || onEdit || onDelete) && (
                 <th className="px-4 py-3 text-center text-sm font-semibold">
                   {t('common.actions')}
                 </th>
@@ -200,7 +203,9 @@ export function DataTable<T>({
             {sortedAndFilteredData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
+                  colSpan={
+                    columns.length + (onView || onEdit || onDelete ? 1 : 0)
+                  }
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   {noDataMessage || t('common.noResults')}
@@ -219,26 +224,38 @@ export function DataTable<T>({
                         : String(row[col.key])}
                     </td>
                   ))}
-                  {(onEdit || onDelete) && (
+                  {(onView || onEdit || onDelete) && (
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
+                        {onView && (
+                          <Button
+                            variant="outline"
+                            size="icon-xs"
+                            onClick={() => onView(row)}
+                            title="View details"
+                          >
+                            <Eye className="size-3.5" />
+                          </Button>
+                        )}
                         {onEdit && (
-                          <button
+                          <Button
+                            variant="outline"
+                            size="icon-xs"
                             onClick={() => onEdit(row)}
-                            className="p-1 hover:bg-muted rounded"
                             title={t('common.edit')}
                           >
-                            <Edit className="size-4 text-primary" />
-                          </button>
+                            <Pencil className="size-3.5 text-primary" />
+                          </Button>
                         )}
                         {onDelete && (
-                          <button
+                          <Button
+                            variant="outline"
+                            size="icon-xs"
                             onClick={() => onDelete(row)}
-                            className="p-1 hover:bg-muted rounded"
                             title={t('common.delete')}
                           >
-                            <Delete className="size-4 text-red-600" />
-                          </button>
+                            <Trash2 className="size-3.5 text-destructive" />
+                          </Button>
                         )}
                       </div>
                     </td>
@@ -256,25 +273,25 @@ export function DataTable<T>({
             Showing {startItem}-{endItem} of {total || 0} items
           </div>
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               Previous
-            </button>
+            </Button>
             <span className="min-w-20 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Page {page} / {totalPages}
             </span>
-            <button
+            <Button
+              variant="outline"
               type="button"
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              className="rounded-md border border-border bg-background px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}

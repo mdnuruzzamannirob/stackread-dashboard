@@ -1,5 +1,6 @@
 'use client'
 
+import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DataTable, DataTableColumn } from '@/components/common/DataTable'
 import { PageHeader } from '@/components/common/PageHeader'
 import {
@@ -10,6 +11,7 @@ import {
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { BookDetailsDialog } from './BookDetailsDialog'
 import { BookFormDialog } from './BookFormDialog'
 
 export function BooksList() {
@@ -24,6 +26,8 @@ export function BooksList() {
   const [deleteBook, { isLoading: isDeleting }] = useDeleteBookMutation()
   const [showDialog, setShowDialog] = useState(false)
   const [editingBook, setEditingBook] = useState<Book | null>(null)
+  const [viewingBook, setViewingBook] = useState<Book | null>(null)
+  const [deletingBook, setDeletingBook] = useState<Book | null>(null)
 
   const handleAdd = () => {
     setEditingBook(null)
@@ -41,18 +45,15 @@ export function BooksList() {
     refetch()
   }
 
-  const handleDelete = async (book: Book) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the book "${book.title}"? This action cannot be undone.`,
-    )
-
-    if (!confirmed) {
+  const handleDelete = async () => {
+    if (!deletingBook) {
       return
     }
 
     try {
-      await deleteBook(book._id).unwrap()
-      toast.success(`Book "${book.title}" deleted successfully`)
+      await deleteBook(deletingBook._id).unwrap()
+      toast.success(`Book "${deletingBook.title}" deleted successfully`)
+      setDeletingBook(null)
       refetch()
     } catch (error) {
       const errorMessage =
@@ -148,7 +149,8 @@ export function BooksList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onView={setViewingBook}
+        onDelete={setDeletingBook}
         searchPlaceholder={`${t('common.search')} books...`}
         noDataMessage={t('books.noBooks')}
         onSearchChange={(value) => {
@@ -163,6 +165,25 @@ export function BooksList() {
 
       {showDialog && (
         <BookFormDialog book={editingBook} onClose={handleCloseDialog} />
+      )}
+
+      {viewingBook && (
+        <BookDetailsDialog
+          book={viewingBook}
+          onClose={() => setViewingBook(null)}
+        />
+      )}
+
+      {deletingBook && (
+        <ConfirmDialog
+          title="Delete book"
+          description={`Delete "${deletingBook.title}"? This action cannot be undone.`}
+          confirmLabel={t('common.delete')}
+          isDangerous
+          isLoading={isDeleting}
+          onCancel={() => setDeletingBook(null)}
+          onConfirm={handleDelete}
+        />
       )}
     </div>
   )

@@ -1,5 +1,12 @@
 'use client'
 
+import { FieldError } from '@/components/common/FieldError'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Category,
   useCreateCategoryMutation,
@@ -136,7 +143,7 @@ export function CategoryFormDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl border border-border shadow-lg max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="text-lg font-semibold">
             {category
@@ -154,85 +161,53 @@ export function CategoryFormDialog({
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto p-6 space-y-4"
+          className="flex-1 overflow-y-auto p-6 space-y-6"
         >
-          {/* Name */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               {t('categories.title')}
               <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            </Label>
+            <Input
               {...register('name')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.name
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.name)}
               placeholder="Category name (2-120 characters)"
             />
-            {errors.name && (
-              <p className="text-red-600 text-xs mt-1">{errors.name.message}</p>
-            )}
+            <FieldError message={errors.name?.message} />
           </div>
 
-          {/* Slug */}
           <div>
-            <label className="block text-sm font-medium mb-2">Slug</label>
-            <input
-              type="text"
+            <Label className="mb-2 block">Slug</Label>
+            <Input
               {...register('slug')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.slug
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.slug)}
               placeholder="category-slug"
             />
-            {errors.slug && (
-              <p className="text-red-600 text-xs mt-1">{errors.slug.message}</p>
-            )}
+            <FieldError message={errors.slug?.message} />
           </div>
 
-          {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-2">
-              {t('common.description')}
-            </label>
-            <textarea
+            <Label className="mb-2 block">{t('common.description')}</Label>
+            <Textarea
               {...register('description')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background resize-none transition ${
-                errors.description
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.description)}
               rows={3}
               placeholder="Category description (3-2000 characters)"
             />
-            {errors.description && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.description.message}
-              </p>
-            )}
+            <FieldError message={errors.description?.message} />
           </div>
 
-          {/* Parent Category */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               {t('categories.parentCategory')}
-            </label>
-            <select
+            </Label>
+            <Select
               {...register('parentId')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.parentId
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.parentId)}
             >
               <option value="">No parent</option>
               {availableParents.map((cat) => (
@@ -240,71 +215,45 @@ export function CategoryFormDialog({
                   {cat.name}
                 </option>
               ))}
-            </select>
-            {errors.parentId && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.parentId.message}
-              </p>
-            )}
+            </Select>
+            <FieldError message={errors.parentId?.message} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Sort Order */}
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Sort Order
-              </label>
-              <input
+              <Label className="mb-2 block">Sort Order</Label>
+              <Input
                 type="number"
                 {...register('sortOrder', { valueAsNumber: true })}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.sortOrder
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.sortOrder)}
                 min={0}
               />
-              {errors.sortOrder && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.sortOrder.message}
-                </p>
-              )}
+              <FieldError message={errors.sortOrder?.message} />
             </div>
 
-            {/* Active */}
             <div>
-              <label className="block text-sm font-medium mb-2">Status</label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register('isActive')}
-                  disabled={isLoading}
-                  className="rounded border-border cursor-pointer disabled:opacity-50"
-                />
+              <Label className="mb-2 block">Status</Label>
+              <Label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox {...register('isActive')} disabled={isLoading} />
                 <span>Active</span>
-              </label>
+              </Label>
             </div>
           </div>
 
-          {/* Form Actions */}
           <div className="flex gap-2 pt-6 border-t border-border">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading && <Loader2 className="size-4 animate-spin" />}
               {isLoading ? t('common.saving') : t('common.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

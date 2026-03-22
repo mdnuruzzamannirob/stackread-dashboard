@@ -4,6 +4,8 @@ import { AlertTriangle, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
+
 export interface ConfirmDialogProps {
   title: string
   description?: string
@@ -39,7 +41,7 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg border border-border shadow-lg max-w-md w-full">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-lg">
         <div className="flex items-center gap-3 p-6 border-b border-border">
           {isDangerous && (
             <AlertTriangle className="size-5 text-red-600 shrink-0" />
@@ -60,23 +62,23 @@ export function ConfirmDialog({
           </div>
         )}
 
-        <div className="flex gap-3 p-6 justify-end">
-          <button
+        <div className="flex justify-end gap-3 p-6">
+          <Button
+            variant="outline"
             onClick={onCancel}
             disabled={isConfirming || isLoading}
-            className="px-4 py-2 border border-border rounded-lg hover:bg-muted disabled:opacity-50"
           >
             {cancelLabel || t('common.cancel')}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant={isDangerous ? 'destructive' : 'default'}
             onClick={handleConfirm}
             disabled={isConfirming || isLoading}
-            className={`px-4 py-2 rounded-lg text-primary-foreground disabled:opacity-50 ${isDangerous ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:opacity-90'}`}
           >
             {isConfirming || isLoading
               ? t('common.loading')
               : confirmLabel || t('common.delete')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

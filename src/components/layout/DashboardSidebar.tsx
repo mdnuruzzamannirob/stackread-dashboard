@@ -10,14 +10,12 @@ import {
   ChartBar,
   ChevronDown,
   ChevronLeft,
-  ChevronRight,
   CircleDollarSign,
   FileClock,
   Globe,
   LayoutDashboard,
   Menu,
   Moon,
-  Receipt,
   Settings,
   Shield,
   Sun,
@@ -107,18 +105,6 @@ export function DashboardSidebar() {
       href: '/members',
       icon: Users,
       requiredPermission: PERMISSIONS.MEMBERS_VIEW,
-    },
-    {
-      label: 'navigation.borrows',
-      href: '/borrows',
-      icon: Receipt,
-      requiredPermission: PERMISSIONS.BORROWS_VIEW,
-    },
-    {
-      label: 'navigation.reservations',
-      href: '/reservations',
-      icon: FileClock,
-      requiredPermission: PERMISSIONS.RESERVATIONS_VIEW,
     },
     {
       label: 'navigation.payments',
@@ -226,30 +212,31 @@ export function DashboardSidebar() {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex border-r border-border bg-sidebar text-sidebar-foreground md:static md:z-auto ${sidebarBaseClass} ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen border-r border-border bg-sidebar text-sidebar-foreground md:sticky md:top-0 md:z-30 ${sidebarBaseClass} ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        <div className="flex h-full w-full flex-col p-3">
-          <div className="flex items-center justify-between gap-2 border-b border-sidebar-border pb-3">
+        <div className="flex h-full w-full flex-col overflow-hidden p-3">
+          <div
+            className={`flex items-center gap-2 border-b border-sidebar-border pb-3 ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}
+          >
             <BrandLogo
               href={`/${locale}/dashboard`}
               collapsed={sidebarCollapsed}
+              onExpand={
+                sidebarCollapsed ? () => dispatch(toggleSidebar()) : undefined
+              }
             />
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => dispatch(toggleSidebar())}
-                className="hidden rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent md:inline-flex"
-                aria-label={
-                  sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
-                }
-                title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              >
-                {sidebarCollapsed ? (
-                  <ChevronRight className="size-4" />
-                ) : (
+              {!sidebarCollapsed && (
+                <button
+                  type="button"
+                  onClick={() => dispatch(toggleSidebar())}
+                  className="hidden rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent md:inline-flex"
+                  aria-label="Collapse sidebar"
+                  title="Collapse sidebar"
+                >
                   <ChevronLeft className="size-4" />
-                )}
-              </button>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
@@ -273,11 +260,11 @@ export function DashboardSidebar() {
                 <Link
                   key={item.href}
                   href={`/${locale}${item.href}`}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                  className={`flex items-center gap-3 rounded-lg py-2 text-sm ${
                     isActive(item.href)
                       ? 'bg-sidebar-primary text-sidebar-primary-foreground font-medium'
                       : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
-                  }`}
+                  } ${sidebarCollapsed ? 'justify-center px-2' : 'px-3'}`}
                   title={sidebarCollapsed ? t(item.label) : undefined}
                 >
                   <Icon className="size-4 shrink-0" />
@@ -289,12 +276,12 @@ export function DashboardSidebar() {
 
           <div className="mt-3 border-t border-sidebar-border pt-3">
             <div
-              className={`mb-3 flex items-center gap-2 ${sidebarCollapsed ? 'justify-center' : 'justify-start'}`}
+              className={`mb-3 ${sidebarCollapsed ? 'flex flex-col items-center gap-2' : 'grid grid-cols-2 gap-2'}`}
             >
               <button
                 type="button"
                 onClick={handleThemeToggle}
-                className="inline-flex size-9 items-center justify-center rounded-lg hover:bg-sidebar-accent"
+                className={`inline-flex items-center justify-center gap-2 rounded-lg border border-sidebar-border hover:bg-sidebar-accent ${sidebarCollapsed ? 'size-9' : 'h-9 w-full px-3 text-xs font-medium'}`}
                 title={
                   resolvedTheme === 'dark'
                     ? 'Switch to light mode'
@@ -311,11 +298,14 @@ export function DashboardSidebar() {
                 ) : (
                   <Sun className="size-4" />
                 )}
+                {!sidebarCollapsed && (
+                  <span>{resolvedTheme === 'dark' ? 'Dark' : 'Light'}</span>
+                )}
               </button>
               <button
                 type="button"
                 onClick={handleLocaleToggle}
-                className="inline-flex size-9 items-center justify-center rounded-lg hover:bg-sidebar-accent"
+                className={`inline-flex items-center justify-center gap-2 rounded-lg border border-sidebar-border hover:bg-sidebar-accent ${sidebarCollapsed ? 'size-9' : 'h-9 w-full px-3 text-xs font-medium'}`}
                 title={
                   locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'
                 }
@@ -324,12 +314,10 @@ export function DashboardSidebar() {
                 }
               >
                 <Globe className="size-4" />
+                {!sidebarCollapsed && (
+                  <span>{locale === 'bn' ? 'বাংলা' : 'English'}</span>
+                )}
               </button>
-              {!sidebarCollapsed && (
-                <span className="text-xs text-sidebar-foreground/80">
-                  {locale === 'bn' ? 'বাংলা' : 'English'}
-                </span>
-              )}
             </div>
 
             <div className="relative">
@@ -362,7 +350,9 @@ export function DashboardSidebar() {
               </button>
 
               {userMenuOpen && (
-                <div className="absolute bottom-12 left-0 z-50 w-56 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg">
+                <div
+                  className={`absolute bottom-12 z-50 rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg ${sidebarCollapsed ? 'left-1/2 w-64 -translate-x-1/2' : 'left-0 w-full min-w-56'}`}
+                >
                   <Link
                     href={`/${locale}/profile`}
                     className="block rounded-md px-3 py-2 text-sm hover:bg-muted"

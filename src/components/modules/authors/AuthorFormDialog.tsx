@@ -1,5 +1,11 @@
 'use client'
 
+import { FieldError } from '@/components/common/FieldError'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Author,
   useCreateAuthorMutation,
@@ -152,7 +158,7 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-card rounded-lg border border-border shadow-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl border border-border shadow-lg max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border sticky top-0 bg-card z-10">
           <h2 className="text-lg font-semibold">
             {author ? t('authors.editAuthor') : t('authors.addAuthor')}
@@ -168,174 +174,105 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
 
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex-1 overflow-y-auto p-6 space-y-4"
+          className="flex-1 overflow-y-auto p-6 space-y-6"
         >
-          {/* Name */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <Label className="mb-2 block">
               {t('authors.name')}
               <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
+            </Label>
+            <Input
               {...register('name')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.name
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.name)}
               placeholder="Enter author name (2-150 characters)"
             />
-            {errors.name && (
-              <p className="text-red-600 text-xs mt-1">{errors.name.message}</p>
-            )}
+            <FieldError message={errors.name?.message} />
           </div>
 
-          {/* Bio */}
           <div>
-            <label className="block text-sm font-medium mb-2">
-              {t('authors.bio')}
-            </label>
-            <textarea
+            <Label className="mb-2 block">{t('authors.bio')}</Label>
+            <Textarea
               {...register('bio')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background resize-none transition ${
-                errors.bio
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.bio)}
               rows={4}
               placeholder="Author biography (3-3000 characters)"
             />
-            {errors.bio && (
-              <p className="text-red-600 text-xs mt-1">{errors.bio.message}</p>
-            )}
+            <FieldError message={errors.bio?.message} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            {/* Country Code */}
             <div>
-              <label className="block text-sm font-medium mb-2">Country</label>
-              <input
-                type="text"
+              <Label className="mb-2 block">Country</Label>
+              <Input
                 {...register('countryCode')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.countryCode
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.countryCode)}
                 placeholder="BD or USA"
               />
-              {errors.countryCode && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.countryCode.message}
-                </p>
-              )}
+              <FieldError message={errors.countryCode?.message} />
             </div>
 
-            {/* Active */}
             <div>
-              <label className="block text-sm font-medium mb-2">Status</label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register('isActive')}
-                  disabled={isLoading}
-                  className="rounded border-border cursor-pointer disabled:opacity-50"
-                />
+              <Label className="mb-2 block">Status</Label>
+              <Label className="inline-flex items-center gap-2 text-sm cursor-pointer">
+                <Checkbox {...register('isActive')} disabled={isLoading} />
                 <span>Active</span>
-              </label>
+              </Label>
             </div>
           </div>
 
-          {/* Avatar */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Avatar Public ID
-              </label>
-              <input
-                type="text"
+              <Label className="mb-2 block">Avatar Public ID</Label>
+              <Input
                 {...register('avatarPublicId')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.avatarPublicId
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.avatarPublicId)}
                 placeholder="authors/avatar-public-id"
               />
-              {errors.avatarPublicId && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.avatarPublicId.message}
-                </p>
-              )}
+              <FieldError message={errors.avatarPublicId?.message} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-2">
-                Avatar URL
-              </label>
-              <input
+              <Label className="mb-2 block">Avatar URL</Label>
+              <Input
                 type="url"
                 {...register('avatarUrl')}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.avatarUrl
-                    ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                    : 'border-border focus:ring-1 focus:ring-primary'
-                } focus:outline-none disabled:opacity-50`}
+                aria-invalid={Boolean(errors.avatarUrl)}
                 placeholder="https://example.com/avatar.png"
               />
-              {errors.avatarUrl && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.avatarUrl.message}
-                </p>
-              )}
+              <FieldError message={errors.avatarUrl?.message} />
             </div>
           </div>
 
-          {/* Website */}
           <div>
-            <label className="block text-sm font-medium mb-2">Website</label>
-            <input
+            <Label className="mb-2 block">Website</Label>
+            <Input
               type="url"
               {...register('website')}
               disabled={isLoading}
-              className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.website
-                  ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
-                  : 'border-border focus:ring-1 focus:ring-primary'
-              } focus:outline-none disabled:opacity-50`}
+              aria-invalid={Boolean(errors.website)}
               placeholder="https://authorwebsite.com"
             />
-            {errors.website && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.website.message}
-              </p>
-            )}
+            <FieldError message={errors.website?.message} />
           </div>
 
-          {/* Form Actions */}
           <div className="flex gap-2 pt-6 border-t border-border">
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={onClose}
               disabled={isLoading}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-muted transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
+            </Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
               {isLoading && <Loader2 className="size-4 animate-spin" />}
               {isLoading ? t('common.saving') : t('common.save')}
-            </button>
+            </Button>
           </div>
         </form>
       </div>
