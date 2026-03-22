@@ -9,10 +9,6 @@ export const PERMISSIONS = {
   // Books
   BOOKS_MANAGE: 'books.manage',
 
-  // Borrows
-  BORROWS_MANAGE: 'borrows.manage',
-  BORROWS_VIEW: 'borrows.view',
-
   // Categories
   CATEGORIES_MANAGE: 'categories.manage',
 
@@ -34,6 +30,9 @@ export const PERMISSIONS = {
   PROMOTIONS_MANAGE: 'promotions.manage',
   PROMOTIONS_VIEW: 'promotions.view',
 
+  // Publishers
+  PUBLISHERS_MANAGE: 'publishers.manage',
+
   // RBAC
   RBAC_MANAGE: 'rbac.manage',
   RBAC_VIEW: 'rbac.view',
@@ -41,10 +40,6 @@ export const PERMISSIONS = {
   // Reports
   REPORTS_MANAGE: 'reports.manage',
   REPORTS_VIEW: 'reports.view',
-
-  // Reservations
-  RESERVATIONS_MANAGE: 'reservations.manage',
-  RESERVATIONS_VIEW: 'reservations.view',
 
   // Reviews
   REVIEWS_MANAGE: 'reviews.manage',

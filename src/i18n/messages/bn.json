@@ -5,6 +5,7 @@
         "success": "সফল",
         "cancel": "বাতিল",
         "save": "সংরক্ষণ",
+        "saving": "সংরক্ষণ হচ্ছে...",
         "delete": "মুছুন",
         "edit": "সম্পাদনা",
         "add": "যোগ করুন",
@@ -25,6 +26,7 @@
         "books": "বই",
         "authors": "লেখকরা",
         "categories": "বিভাগসমূহ",
+        "publishers": "প্রকাশক",
         "borrows": "ধার",
         "reservations": "সংরক্ষণ",
         "payments": "পেমেন্ট",
@@ -181,6 +183,21 @@
         "bookCount": "বই সংখ্যা",
         "parentCategory": "প্যারেন্ট বিভাগ",
         "subcategories": "উপবিভাগ"
+    },
+    "publishers": {
+        "title": "প্রকাশক ব্যবস্থাপনা",
+        "description": "বই প্রকাশক পরিচালনা করুন",
+        "addPublisher": "নতুন প্রকাশক যোগ করুন",
+        "editPublisher": "প্রকাশক সম্পাদনা করুন",
+        "deletePublisher": "প্রকাশক মুছুন",
+        "publishersList": "প্রকাশক তালিকা",
+        "noPublishers": "কোন প্রকাশক পাওয়া যায়নি",
+        "name": "প্রকাশক নাম",
+        "description": "বর্ণনা",
+        "website": "ওয়েবসাইট",
+        "country": "দেশ",
+        "foundedYear": "প্রতিষ্ঠিত বছর",
+        "active": "সক্রিয়"
     },
     "errors": {
         "forbidden": "আপনার এই পৃষ্ঠায় অ্যাক্সেস করার অনুমতি নেই",

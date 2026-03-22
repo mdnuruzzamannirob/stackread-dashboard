@@ -85,6 +85,12 @@ export function DashboardSidebar() {
       icon: BookOpenCheck,
     },
     {
+      label: 'navigation.publishers',
+      href: '/publishers',
+      icon: Globe,
+      requiredPermission: PERMISSIONS.PUBLISHERS_MANAGE,
+    },
+    {
       label: 'navigation.staff',
       href: '/staff',
       icon: UserCog,

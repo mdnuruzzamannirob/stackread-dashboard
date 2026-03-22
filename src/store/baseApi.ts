@@ -97,6 +97,7 @@ export const baseApi = createApi({
     'Books',
     'Authors',
     'Categories',
+    'Publishers',
     'Borrows',
     'Reservations',
     'Payments',

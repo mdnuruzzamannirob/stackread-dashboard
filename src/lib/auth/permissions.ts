@@ -34,6 +34,9 @@ export const PERMISSIONS = {
   PROMOTIONS_MANAGE: 'promotions.manage',
   PROMOTIONS_VIEW: 'promotions.view',
 
+  // Publishers
+  PUBLISHERS_MANAGE: 'publishers.manage',
+
   // RBAC
   RBAC_MANAGE: 'rbac.manage',
   RBAC_VIEW: 'rbac.view',
