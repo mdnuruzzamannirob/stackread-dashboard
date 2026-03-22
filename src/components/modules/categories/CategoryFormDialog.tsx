@@ -100,9 +100,7 @@ export function CategoryFormDialog({
   }
 
   const availableParents =
-    categoriesData?.data.filter(
-      (cat) => cat._id !== category?._id,
-    ) || []
+    categoriesData?.data.filter((cat) => cat._id !== category?._id) || []
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -175,7 +173,9 @@ export function CategoryFormDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Sort Order</label>
+              <label className="block text-sm font-medium mb-1">
+                Sort Order
+              </label>
               <input
                 type="number"
                 {...register('sortOrder', { valueAsNumber: true })}

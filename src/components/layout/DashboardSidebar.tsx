@@ -28,9 +28,9 @@ import {
   X,
 } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
+import { useTheme } from 'next-themes'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useTheme } from 'next-themes'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -224,13 +224,18 @@ export function DashboardSidebar() {
       >
         <div className="flex h-full w-full flex-col p-3">
           <div className="flex items-center justify-between gap-2 border-b border-sidebar-border pb-3">
-            <BrandLogo href={`/${locale}/dashboard`} collapsed={sidebarCollapsed} />
+            <BrandLogo
+              href={`/${locale}/dashboard`}
+              collapsed={sidebarCollapsed}
+            />
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => dispatch(toggleSidebar())}
                 className="hidden rounded-lg p-2 text-sidebar-foreground hover:bg-sidebar-accent md:inline-flex"
-                aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                aria-label={
+                  sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
+                }
                 title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               >
                 {sidebarCollapsed ? (
@@ -284,8 +289,16 @@ export function DashboardSidebar() {
                 type="button"
                 onClick={handleThemeToggle}
                 className="inline-flex size-9 items-center justify-center rounded-lg hover:bg-sidebar-accent"
-                title={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-                aria-label={resolvedTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={
+                  resolvedTheme === 'dark'
+                    ? 'Switch to light mode'
+                    : 'Switch to dark mode'
+                }
+                aria-label={
+                  resolvedTheme === 'dark'
+                    ? 'Switch to light mode'
+                    : 'Switch to dark mode'
+                }
               >
                 {resolvedTheme === 'dark' ? (
                   <Moon className="size-4" />
@@ -297,8 +310,12 @@ export function DashboardSidebar() {
                 type="button"
                 onClick={handleLocaleToggle}
                 className="inline-flex size-9 items-center justify-center rounded-lg hover:bg-sidebar-accent"
-                title={locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'}
-                aria-label={locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'}
+                title={
+                  locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'
+                }
+                aria-label={
+                  locale === 'bn' ? 'Switch to English' : 'Switch to বাংলা'
+                }
               >
                 <Globe className="size-4" />
               </button>
@@ -316,7 +333,9 @@ export function DashboardSidebar() {
                 className={`flex w-full items-center gap-2 rounded-lg p-2 hover:bg-sidebar-accent ${
                   sidebarCollapsed ? 'justify-center' : 'justify-between'
                 }`}
-                title={sidebarCollapsed ? staff?.name || 'User menu' : undefined}
+                title={
+                  sidebarCollapsed ? staff?.name || 'User menu' : undefined
+                }
               >
                 <span className="inline-flex size-8 items-center justify-center rounded-full bg-sidebar-primary text-xs font-semibold text-sidebar-primary-foreground">
                   {staff?.name?.trim()?.charAt(0)?.toUpperCase() || 'U'}
@@ -351,7 +370,9 @@ export function DashboardSidebar() {
                     disabled={isLogoutLoading}
                     className="w-full rounded-md px-3 py-2 text-left text-sm text-red-600 hover:bg-muted disabled:opacity-60"
                   >
-                    {isLogoutLoading ? t('auth.loggingOut') : t('navigation.logout')}
+                    {isLogoutLoading
+                      ? t('auth.loggingOut')
+                      : t('navigation.logout')}
                   </button>
                 </div>
               )}

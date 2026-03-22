@@ -5,8 +5,8 @@ import { useGetAuthorsQuery } from '@/store/api/authorsApi'
 import {
   Book,
   useCreateBookMutation,
-  useUploadBookFileMutation,
   useUpdateBookMutation,
+  useUploadBookFileMutation,
 } from '@/store/api/booksApi'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -43,7 +43,11 @@ const bookSchema = z.object({
   language: z.string().min(2).max(20),
   publicationDate: z.string().optional(),
   pageCount: z.number().min(1, 'Page count must be at least 1').optional(),
-  coverImageUrl: z.string().url('Invalid cover image URL').optional().or(z.literal('')),
+  coverImageUrl: z
+    .string()
+    .url('Invalid cover image URL')
+    .optional()
+    .or(z.literal('')),
   description: z
     .string()
     .max(2000, 'Description must not exceed 2000 characters')
@@ -229,7 +233,9 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               placeholder="Short summary of this book"
             />
             {errors.summary && (
-              <p className="text-red-600 text-xs mt-1">{errors.summary.message}</p>
+              <p className="text-red-600 text-xs mt-1">
+                {errors.summary.message}
+              </p>
             )}
           </div>
 
@@ -304,9 +310,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">
-                Language
-              </label>
+              <label className="block text-sm font-medium mb-1">Language</label>
               <select
                 {...register('language')}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
@@ -344,7 +348,9 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">E-book URL</label>
+              <label className="block text-sm font-medium mb-1">
+                E-book URL
+              </label>
               <input
                 type="url"
                 {...register('ebookUrl')}
@@ -352,11 +358,15 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                 placeholder="https://.../book.pdf"
               />
               {errors.ebookUrl && (
-                <p className="text-red-600 text-xs mt-1">{errors.ebookUrl.message}</p>
+                <p className="text-red-600 text-xs mt-1">
+                  {errors.ebookUrl.message}
+                </p>
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">E-book Format</label>
+              <label className="block text-sm font-medium mb-1">
+                E-book Format
+              </label>
               <select
                 {...register('ebookFormat')}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"

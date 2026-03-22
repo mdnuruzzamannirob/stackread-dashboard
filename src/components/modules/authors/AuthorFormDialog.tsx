@@ -185,7 +185,9 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
               placeholder="https://..."
             />
             {errors.website && (
-              <p className="text-red-600 text-xs mt-1">{errors.website.message}</p>
+              <p className="text-red-600 text-xs mt-1">
+                {errors.website.message}
+              </p>
             )}
           </div>
 
