@@ -42,8 +42,8 @@ Build admin.stackread.com as a secure Next.js 16 dashboard for staff and admin u
 
 1. POST /staff/login
 
-- If mustSetup2FA = true, route to /auth/2fa/setup
-- If requiresTwoFactor = true, route to /auth/2fa/verify
+- If mustSetup2FA = true, route to /staff/2fa/setup
+- If requiresTwoFactor = true, route to /staff/2fa/verify
 
 2. Setup flow
 
@@ -53,27 +53,39 @@ Build admin.stackread.com as a secure Next.js 16 dashboard for staff and admin u
 3. Verify flow
 
 - POST /staff/2fa/verify with tempToken + otp to issue access token
+- POST /staff/2fa/email/send to send OTP to staff email (alternative path)
 
 4. Invite flow
 
 - POST /staff/accept-invite
 - Immediately enforce mandatory 2FA setup on first login
 
+5. Password recovery flow
+
+- POST /staff/forgot-password
+- POST /staff/resend-reset-otp
+- POST /staff/verify-reset-otp
+- POST /staff/reset-password
+
+6. Session management
+
+- POST /staff/logout
+- POST /staff/refresh (renew session token)
+
 ## Permission System (from backend guards)
 
 - audit.manage, audit.view
 - authors.manage
 - books.manage
-- borrows.manage, borrows.view
 - categories.manage
 - members.manage, members.view
 - notifications.manage
 - payments.manage, payments.view
 - plans.manage
 - promotions.manage, promotions.view
+- publishers.manage
 - rbac.manage, rbac.view
 - reports.manage, reports.view
-- reservations.manage, reservations.view
 - reviews.manage, reviews.view
 - settings.manage, settings.view
 - staff.manage, staff.view
@@ -112,6 +124,19 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - Render: Client
 - APIs: POST /staff/accept-invite
 - Components: AcceptInviteForm
+
+### Auth API Endpoints (Non-Page)
+
+- GET /staff/me
+- PATCH /staff/me/password
+- POST /staff/logout
+- POST /staff/refresh
+- POST /staff/forgot-password (staff password recovery)
+- POST /staff/resend-reset-otp
+- POST /staff/verify-reset-otp
+- POST /staff/reset-password
+- POST /staff/2fa/email/send (OTP delivery alternative to QR)
+- POST /staff/2fa/disable
 
 ### Admin and Staff Pages
 
@@ -241,19 +266,12 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - APIs: GET /admin/reviews, PATCH /admin/reviews/:id/toggle
 - Components: ReviewModerationTable
 
-23. Route: /[locale]/reservations
+23. Route: /[locale]/publishers
 
-- Permission: reservations.view/manage
-- Render: Server + client status actions
-- APIs: GET /reservations, PATCH /reservations/:id
-- Components: ReservationQueueTable
-
-24. Route: /[locale]/borrows
-
-- Permission: borrows.view/manage
-- Render: Server + client actions
-- APIs: GET /borrows, PATCH /borrows/:id
-- Components: BorrowManagementTable
+- Permission: publishers.manage
+- Render: Server + client form/dialog actions
+- APIs: GET /publishers, GET /publishers/:id, POST /publishers, PATCH /publishers/:id, DELETE /publishers/:id
+- Components: PublisherTable, PublisherFormDialog
 
 25. Route: /[locale]/staff
 
@@ -266,7 +284,7 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 
 - Permission: staff.view/manage
 - Render: Server + client actions
-- APIs: GET /admin/staff/:id, GET /admin/staff/:id/activity, PATCH /admin/staff/:id/role, PATCH /admin/staff/:id/suspend, PATCH /admin/staff/:id/unsuspend, POST /admin/staff/:id/reinvite, DELETE /admin/staff/:id
+- APIs: GET /admin/staff/:id, GET /admin/staff/:id/activity, PATCH /admin/staff/:id/role, PATCH /admin/staff/:id/suspend, PATCH /admin/staff/:id/unsuspend, POST /admin/staff/:id/reinvite, POST /admin/staff/:id/2fa/reset, DELETE /admin/staff/:id
 - Components: StaffProfileCard, ActivityTimeline
 
 27. Route: /[locale]/rbac/roles
@@ -383,6 +401,7 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - src/store/features/books/adminBooksApi.ts
 - src/store/features/authors/adminAuthorsApi.ts
 - src/store/features/categories/adminCategoriesApi.ts
+- src/store/features/publishers/adminPublishersApi.ts
 - src/store/features/members/adminMembersApi.ts
 - src/store/features/staff/adminStaffApi.ts
 - src/store/features/rbac/adminRbacApi.ts
@@ -390,8 +409,6 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - src/store/features/payments/adminPaymentsApi.ts
 - src/store/features/promotions/adminPromotionsApi.ts
 - src/store/features/reviews/adminReviewsApi.ts
-- src/store/features/reservations/adminReservationsApi.ts
-- src/store/features/borrows/adminBorrowsApi.ts
 - src/store/features/notifications/adminNotificationsApi.ts
 - src/store/features/reports/adminReportsApi.ts
 - src/store/features/audit/adminAuditApi.ts
@@ -426,13 +443,12 @@ UI slice fields:
 - src/app/[locale]/books/\*
 - src/app/[locale]/authors/\*
 - src/app/[locale]/categories/\*
+- src/app/[locale]/publishers/\*
 - src/app/[locale]/members/\*
 - src/app/[locale]/subscriptions/\*
 - src/app/[locale]/payments/\*
 - src/app/[locale]/promotions/\*
 - src/app/[locale]/reviews/\*
-- src/app/[locale]/reservations/\*
-- src/app/[locale]/borrows/\*
 - src/app/[locale]/staff/\*
 - src/app/[locale]/rbac/\*
 - src/app/[locale]/audit/\*
@@ -461,9 +477,9 @@ UI slice fields:
 
 ## Endpoint Coverage Index (Backend Implemented)
 
-- Total backend endpoints mapped: 176
-- Staff/admin-relevant endpoint focus used by dashboard pages: 74
-- Full backend map used as source when planning cross-surface links
+- OpenAPI paths mapped: 149
+- Postman requests mapped: 183
+- Dashboard planning uses these artifacts plus mounted router truth in src/app/routes.ts
 
 ## Implementation Phases
 
@@ -478,12 +494,12 @@ UI slice fields:
 
 ### Phase 2: Auth + Mandatory 2FA + Permission System
 
-- Build: login, mandatory setup/verify 2FA, invite acceptance, permission utilities
+- Build: login, mandatory setup/verify 2FA, invite acceptance, password recovery, permission utilities
 - Pages/components: auth routes and PermissionGuard
-- APIs: /staff/login, /staff/2fa/setup, /staff/2fa/enable, /staff/2fa/verify, /staff/accept-invite, /staff/me
+- APIs: /staff/login, /staff/2fa/setup, /staff/2fa/enable, /staff/2fa/verify, /staff/2fa/email/send, /staff/2fa/disable, /staff/accept-invite, /staff/me, /staff/me/password, /staff/logout, /staff/refresh, /staff/forgot-password, /staff/resend-reset-otp, /staff/verify-reset-otp, /staff/reset-password
 - Permissions: route gate matrix by backend keys
 - Dependencies: qrcode, react-hook-form, zod
-- Order: login -> setup -> verify -> session hydration -> permission guard
+- Order: login -> setup -> verify -> session hydration -> permission guard -> password recovery flows
 
 ### Phase 3: Overview + Books + Authors + Categories
 
@@ -514,12 +530,12 @@ UI slice fields:
 - Permissions: reports._, audit._, settings.\*
 - Order: reports -> audit -> settings
 
-### Phase 7: Notifications + Reviews + Reservations + Borrows
+### Phase 7: Notifications + Reviews + Publishers
 
-- Build: communications and circulation moderation tools
-- APIs: /notifications/bulk-send, /admin/reviews*, /reservations*, /borrows\*
-- Permissions: notifications.manage, reviews._, reservations._, borrows.\*
-- Order: notifications -> reviews -> reservations -> borrows
+- Build: communications, moderation, and publisher management tools
+- APIs: /notifications/bulk-send, /admin/reviews*, /publishers*
+- Permissions: notifications.manage, reviews.\_, publishers.manage
+- Order: notifications -> reviews -> publishers
 
 ### Phase 8: i18n + Testing + Deploy
 
