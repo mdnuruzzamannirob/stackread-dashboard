@@ -14,9 +14,12 @@ import { BookFormDialog } from './BookFormDialog'
 
 export function BooksList() {
   const t = useTranslations()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetBooksQuery({
-    page: 1,
+    page,
     limit: 20,
+    search: search || undefined,
   })
   const [deleteBook, { isLoading: isDeleting }] = useDeleteBookMutation()
   const [showDialog, setShowDialog] = useState(false)
@@ -35,10 +38,13 @@ export function BooksList() {
   const handleCloseDialog = () => {
     setShowDialog(false)
     setEditingBook(null)
+    refetch()
   }
 
   const handleDelete = async (book: Book) => {
-    const confirmed = window.confirm(t('common.confirmDelete'))
+    const confirmed = window.confirm(
+      `Are you sure you want to delete the book "${book.title}"? This action cannot be undone.`,
+    )
 
     if (!confirmed) {
       return
@@ -46,9 +52,15 @@ export function BooksList() {
 
     try {
       await deleteBook(book._id).unwrap()
-      toast.success(t('common.success'))
-    } catch {
-      toast.error(t('errors.serverError'))
+      toast.success(`Book "${book.title}" deleted successfully`)
+      refetch()
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error && error.message
+          ? error.message
+          : 'Failed to delete book. Please try again.'
+      toast.error(errorMessage)
+      console.error('Delete book error:', error)
     }
   }
 
@@ -80,10 +92,10 @@ export function BooksList() {
 
         const formats = files
           .map((file) => {
-            const mime = file.contentType?.toLowerCase() || ''
-            if (mime.includes('pdf')) return 'PDF'
-            if (mime.includes('epub')) return 'EPUB'
-            return file.contentType || 'File'
+            const format = file.format?.toLowerCase() || ''
+            if (format === 'pdf' || format.includes('pdf')) return 'PDF'
+            if (format === 'epub' || format.includes('epub')) return 'EPUB'
+            return file.format || 'File'
           })
           .filter((format, index, all) => all.indexOf(format) === index)
 
@@ -139,6 +151,14 @@ export function BooksList() {
         onDelete={handleDelete}
         searchPlaceholder={`${t('common.search')} books...`}
         noDataMessage={t('books.noBooks')}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(1)
+        }}
+        page={page}
+        onPageChange={setPage}
+        total={data?.total || 0}
+        pageSize={20}
       />
 
       {showDialog && (

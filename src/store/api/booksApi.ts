@@ -16,34 +16,52 @@ interface PaginationMeta {
   limit: number
 }
 
+export interface CoverImageRef {
+  publicId: string
+  url: string
+  width: number
+  height: number
+}
+
+// Exact backend BookFile structure
 export interface BookFile {
   id: string
-  provider: string
-  key: string
+  provider: 'cloudinary'
+  publicId: string
   url: string
-  contentType: string
+  format: 'pdf' | 'epub' | 'mobi'
   size: number
   originalFileName: string
+  resourceType: 'raw'
   uploadedAt: string
 }
 
+// Exact backend Book structure
 export interface Book {
   _id: string
+  id?: string
   title: string
   slug: string
-  isbn: string
+  isbn?: string
   summary: string
-  authorIds: string[]
-  categoryIds: string[]
-  language: string
-  publicationDate?: string
-  coverImageUrl?: string
-  pageCount?: number
   description?: string
-  tags: string[]
-  files: BookFile[]
+  language: string
+  pageCount?: number
+  publicationDate?: string
+  coverImage?: CoverImageRef
+  edition?: string
   featured: boolean
   isAvailable: boolean
+  accessLevel: 'free' | 'basic' | 'premium'
+  isPublished: boolean
+  authorIds: string[]
+  categoryIds: string[]
+  publisherId?: string
+  tags: string[]
+  files: BookFile[]
+  ratingAverage: number
+  ratingCount: number
+  addedBy: string
   createdAt: string
   updatedAt: string
 }
@@ -51,21 +69,25 @@ export interface Book {
 export interface CreateBookRequest {
   title: string
   slug: string
-  isbn: string
+  isbn?: string
   summary: string
-  authorIds: string[]
-  categoryIds: string[]
-  language: string
-  publicationDate?: string
-  coverImageUrl?: string
-  pageCount?: number
   description?: string
+  language: string
+  pageCount?: number
+  publicationDate?: Date | string
+  coverImage?: CoverImageRef
+  edition?: string
   featured?: boolean
   isAvailable?: boolean
+  accessLevel?: 'free' | 'basic' | 'premium'
+  isPublished?: boolean
+  authorIds: string[]
+  categoryIds: string[]
   tags?: string[]
+  publisherId?: string
 }
 
-export interface UpdateBookRequest extends Partial<CreateBookRequest> {}
+export type UpdateBookRequest = Partial<CreateBookRequest>
 
 export interface BooksListResponse {
   data: Book[]
@@ -74,6 +96,7 @@ export interface BooksListResponse {
   limit: number
 }
 
+// Backend response structure
 interface BackendBook {
   id: string
   title: string
@@ -84,34 +107,67 @@ interface BackendBook {
   language: string
   pageCount?: number
   publicationDate?: string
-  coverImageUrl?: string
+  coverImage?: {
+    publicId: string
+    url: string
+    width: number
+    height: number
+  }
+  edition?: string
   featured: boolean
   isAvailable: boolean
+  accessLevel: 'free' | 'basic' | 'premium'
+  isPublished: boolean
   authorIds: string[]
   categoryIds: string[]
+  publisherId?: string
   tags: string[]
   files: BookFile[]
+  ratingAverage: number
+  ratingCount: number
+  addedBy: string
   createdAt: string
   updatedAt: string
 }
 
+// Map backend response to frontend Book interface
 const mapBook = (book: BackendBook): Book => ({
   _id: book.id,
+  id: book.id,
   title: book.title,
   slug: book.slug,
-  isbn: book.isbn || '',
+  isbn: book.isbn || undefined,
   summary: book.summary,
-  description: book.description,
+  description: book.description || undefined,
   language: book.language,
-  pageCount: book.pageCount,
-  publicationDate: book.publicationDate,
-  coverImageUrl: book.coverImageUrl,
+  pageCount: book.pageCount || undefined,
+  publicationDate: book.publicationDate || undefined,
+  coverImage: book.coverImage || undefined,
+  edition: book.edition || undefined,
   featured: Boolean(book.featured),
   isAvailable: Boolean(book.isAvailable),
+  accessLevel: book.accessLevel || 'free',
+  isPublished: Boolean(book.isPublished),
   authorIds: Array.isArray(book.authorIds) ? book.authorIds : [],
   categoryIds: Array.isArray(book.categoryIds) ? book.categoryIds : [],
+  publisherId: book.publisherId || undefined,
   tags: Array.isArray(book.tags) ? book.tags : [],
-  files: Array.isArray(book.files) ? book.files : [],
+  files: Array.isArray(book.files)
+    ? book.files.map((f) => ({
+        id: f.id,
+        provider: f.provider,
+        publicId: f.publicId,
+        url: f.url,
+        format: f.format,
+        size: f.size,
+        originalFileName: f.originalFileName,
+        resourceType: f.resourceType,
+        uploadedAt: f.uploadedAt,
+      }))
+    : [],
+  ratingAverage: book.ratingAverage || 0,
+  ratingCount: book.ratingCount || 0,
+  addedBy: book.addedBy,
   createdAt: book.createdAt,
   updatedAt: book.updatedAt,
 })
@@ -120,14 +176,35 @@ export interface BulkImportRequest {
   books: CreateBookRequest[]
 }
 
+export type UploadBookFileBody =
+  | {
+      fileName: string
+      contentType: string
+      fileBase64: string
+      folder?: string
+      resourceType?: 'raw'
+    }
+  | {
+      fileName: string
+      contentType: string
+      publicId: string
+      url: string
+      format: 'pdf' | 'epub' | 'mobi'
+      size: number
+      folder?: string
+      resourceType?: 'raw'
+    }
+
+// File upload response from backend
 export interface FileUploadResponse {
   id: string
-  provider: string
-  key: string
+  provider: 'cloudinary'
+  publicId: string
   url: string
-  contentType: string
+  format: 'pdf' | 'epub' | 'mobi'
   size: number
   originalFileName: string
+  resourceType: 'raw'
   uploadedAt: string
 }
 
@@ -135,7 +212,15 @@ export const booksApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getBooks: builder.query<
       BooksListResponse,
-      { page?: number; limit?: number; search?: string }
+      {
+        page?: number
+        limit?: number
+        search?: string
+        featured?: boolean
+        isAvailable?: boolean
+        authorId?: string
+        categoryId?: string
+      }
     >({
       query: (params) => ({
         url: '/books',
@@ -143,6 +228,14 @@ export const booksApi = baseApi.injectEndpoints({
           page: params.page || 1,
           limit: params.limit || 10,
           ...(params.search && { search: params.search }),
+          ...(typeof params.featured === 'boolean' && {
+            featured: params.featured,
+          }),
+          ...(typeof params.isAvailable === 'boolean' && {
+            isAvailable: params.isAvailable,
+          }),
+          ...(params.authorId && { authorId: params.authorId }),
+          ...(params.categoryId && { categoryId: params.categoryId }),
         },
       }),
       transformResponse: (
@@ -201,29 +294,12 @@ export const booksApi = baseApi.injectEndpoints({
 
     uploadBookFile: builder.mutation<
       FileUploadResponse,
-      {
-        id: string
-        body: {
-          fileName: string
-          contentType: string
-          url: string
-          key?: string
-          size?: number
-          provider?: string
-        }
-      }
+      { id: string; body: UploadBookFileBody }
     >({
       query: ({ id, body }) => ({
         url: `/admin/books/${id}/files`,
         method: 'POST',
-        body: {
-          fileName: body.fileName,
-          contentType: body.contentType,
-          url: body.url,
-          key: body.key ?? body.url,
-          size: body.size ?? 1,
-          provider: body.provider ?? 'external',
-        },
+        body,
       }),
       transformResponse: (response: ApiEnvelope<FileUploadResponse>) =>
         response.data,

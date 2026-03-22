@@ -14,9 +14,12 @@ import { AuthorFormDialog } from './AuthorFormDialog'
 
 export function AuthorsList() {
   const t = useTranslations()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetAuthorsQuery({
-    page: 1,
+    page,
     limit: 20,
+    search: search || undefined,
   })
   const [deleteAuthor, { isLoading: isDeleting }] = useDeleteAuthorMutation()
   const [showDialog, setShowDialog] = useState(false)
@@ -118,6 +121,14 @@ export function AuthorsList() {
         onDelete={handleDelete}
         searchPlaceholder={`${t('common.search')} authors...`}
         noDataMessage={t('authors.noAuthors')}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(1)
+        }}
+        page={page}
+        onPageChange={setPage}
+        total={data?.total || 0}
+        pageSize={20}
       />
 
       {showDialog && (

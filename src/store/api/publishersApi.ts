@@ -16,13 +16,18 @@ interface PaginationMeta {
   limit: number
 }
 
+interface LogoRef {
+  publicId: string
+  url: string
+}
+
 interface BackendPublisher {
   id: string
   name: string
   slug: string
   description?: string
   website?: string
-  logoUrl?: string
+  logo?: LogoRef | null
   country?: string
   foundedYear?: number
   isActive: boolean
@@ -36,7 +41,7 @@ export interface Publisher {
   slug: string
   description?: string
   website?: string
-  logoUrl?: string
+  logo?: LogoRef
   country?: string
   foundedYear?: number
   isActive: boolean
@@ -46,9 +51,10 @@ export interface Publisher {
 
 export interface CreatePublisherRequest {
   name: string
+  slug: string
   description?: string
   website?: string
-  logoUrl?: string
+  logo?: LogoRef
   country?: string
   foundedYear?: number
   isActive?: boolean
@@ -56,9 +62,10 @@ export interface CreatePublisherRequest {
 
 export interface UpdatePublisherRequest {
   name?: string
+  slug?: string
   description?: string
   website?: string
-  logoUrl?: string
+  logo?: LogoRef
   country?: string
   foundedYear?: number
   isActive?: boolean
@@ -77,7 +84,7 @@ const mapPublisher = (publisher: BackendPublisher): Publisher => ({
   slug: publisher.slug,
   description: publisher.description,
   website: publisher.website,
-  logoUrl: publisher.logoUrl,
+  logo: publisher.logo ?? undefined,
   country: publisher.country,
   foundedYear: publisher.foundedYear,
   isActive: Boolean(publisher.isActive),

@@ -1,7 +1,13 @@
 'use client'
 
+import { PermissionGuard } from '@/components/common/PermissionGuard'
 import { CategoriesList } from '@/components/modules/categories/CategoriesList'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function CategoriesPage() {
-  return <CategoriesList />
+  return (
+    <PermissionGuard requiredPermission={PERMISSIONS.CATEGORIES_MANAGE}>
+      <CategoriesList />
+    </PermissionGuard>
+  )
 }

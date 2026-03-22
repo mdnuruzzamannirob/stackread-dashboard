@@ -3,6 +3,8 @@
         "loading": "লোড হচ্ছে...",
         "error": "ত্রুটি",
         "success": "সফল",
+        "createdSuccessfully": "সফলভাবে তৈরি হয়েছে",
+        "updatedSuccessfully": "সফলভাবে আপডেট হয়েছে",
         "cancel": "বাতিল",
         "save": "সংরক্ষণ",
         "saving": "সংরক্ষণ হচ্ছে...",

@@ -30,6 +30,11 @@ export interface DataTableProps<T> {
   searchable?: boolean
   searchPlaceholder?: string
   noDataMessage?: string
+  onSearchChange?: (value: string) => void
+  page?: number
+  pageSize?: number
+  total?: number
+  onPageChange?: (page: number) => void
 }
 
 type SortDirection = 'asc' | 'desc' | null
@@ -45,6 +50,11 @@ export function DataTable<T>({
   searchable = true,
   searchPlaceholder,
   noDataMessage,
+  onSearchChange,
+  page = 1,
+  pageSize = data.length || 1,
+  total,
+  onPageChange,
 }: DataTableProps<T>) {
   const t = useTranslations()
   const [sortKey, setSortKey] = useState<SortKey>(null)
@@ -99,6 +109,22 @@ export function DataTable<T>({
     return result
   }, [data, sortKey, sortDirection, searchTerm, columns])
 
+  const totalPages =
+    typeof total === 'number' && pageSize > 0
+      ? Math.max(1, Math.ceil(total / pageSize))
+      : 1
+  const hasPagination =
+    typeof total === 'number' && typeof onPageChange === 'function'
+  const startItem =
+    hasPagination && total
+      ? Math.min((page - 1) * pageSize + 1, total)
+      : sortedAndFilteredData.length > 0
+        ? 1
+        : 0
+  const endItem = hasPagination
+    ? Math.min(page * pageSize, total || 0)
+    : sortedAndFilteredData.length
+
   if (isLoading) {
     return (
       <div className="rounded-lg border border-border overflow-hidden">
@@ -121,7 +147,11 @@ export function DataTable<T>({
               type="text"
               placeholder={searchPlaceholder || t('common.search')}
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                setSearchTerm(value)
+                onSearchChange?.(value)
+              }}
               className="w-full pl-10 pr-4 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground"
             />
           </div>
@@ -219,6 +249,35 @@ export function DataTable<T>({
           </tbody>
         </table>
       </div>
+
+      {hasPagination && totalPages > 1 && (
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            Showing {startItem}-{endItem} of {total || 0} items
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => onPageChange(page - 1)}
+              disabled={page <= 1}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="min-w-20 text-center text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              Page {page} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => onPageChange(page + 1)}
+              disabled={page >= totalPages}
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

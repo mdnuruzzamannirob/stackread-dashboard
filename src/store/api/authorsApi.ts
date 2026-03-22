@@ -16,12 +16,17 @@ interface PaginationMeta {
   limit: number
 }
 
+interface AvatarRef {
+  publicId: string
+  url: string
+}
+
 interface BackendAuthor {
   id: string
   name: string
   bio?: string
   countryCode?: string
-  avatarUrl?: string
+  avatar?: AvatarRef | null
   website?: string
   isActive: boolean
   createdAt: string
@@ -33,7 +38,7 @@ export interface Author {
   name: string
   bio?: string
   countryCode?: string
-  avatarUrl?: string
+  avatar?: AvatarRef
   website?: string
   isActive: boolean
   createdAt: string
@@ -44,7 +49,7 @@ export interface CreateAuthorRequest {
   name: string
   bio?: string
   countryCode?: string
-  avatarUrl?: string
+  avatar?: AvatarRef
   website?: string
   isActive?: boolean
 }
@@ -53,7 +58,7 @@ export interface UpdateAuthorRequest {
   name?: string
   bio?: string
   countryCode?: string
-  avatarUrl?: string
+  avatar?: AvatarRef
   website?: string
   isActive?: boolean
 }
@@ -70,7 +75,7 @@ const mapAuthor = (author: BackendAuthor): Author => ({
   name: author.name,
   bio: author.bio,
   countryCode: author.countryCode,
-  avatarUrl: author.avatarUrl,
+  avatar: author.avatar ?? undefined,
   website: author.website,
   isActive: Boolean(author.isActive),
   createdAt: author.createdAt,

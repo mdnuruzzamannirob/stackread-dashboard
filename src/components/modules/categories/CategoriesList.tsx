@@ -14,9 +14,12 @@ import { CategoryFormDialog } from './CategoryFormDialog'
 
 export function CategoriesList() {
   const t = useTranslations()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetCategoriesQuery({
-    page: 1,
-    limit: 50,
+    page,
+    limit: 20,
+    search: search || undefined,
   })
   const [deleteCategory, { isLoading: isDeleting }] =
     useDeleteCategoryMutation()
@@ -119,6 +122,14 @@ export function CategoriesList() {
         onDelete={handleDelete}
         searchPlaceholder={`${t('common.search')} categories...`}
         noDataMessage={t('categories.noCategories')}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(1)
+        }}
+        page={page}
+        onPageChange={setPage}
+        total={data?.total || 0}
+        pageSize={20}
       />
 
       {showDialog && (

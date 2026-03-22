@@ -3,6 +3,8 @@
         "loading": "Loading...",
         "error": "Error",
         "success": "Success",
+        "createdSuccessfully": "Created successfully",
+        "updatedSuccessfully": "Updated successfully",
         "cancel": "Cancel",
         "save": "Save",
         "saving": "Saving...",

@@ -14,9 +14,12 @@ import { PublisherFormDialog } from './PublisherFormDialog'
 
 export function PublishersList() {
   const t = useTranslations()
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetPublishersQuery({
-    page: 1,
+    page,
     limit: 20,
+    search: search || undefined,
   })
   const [deletePublisher, { isLoading: isDeleting }] =
     useDeletePublisherMutation()
@@ -126,6 +129,14 @@ export function PublishersList() {
         onDelete={handleDelete}
         searchPlaceholder={`${t('common.search')} publishers...`}
         noDataMessage={t('publishers.noPublishers')}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(1)
+        }}
+        page={page}
+        onPageChange={setPage}
+        total={data?.total || 0}
+        pageSize={20}
       />
 
       {showDialog && (
