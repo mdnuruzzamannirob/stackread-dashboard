@@ -5,6 +5,7 @@ import { useGetAuthorsQuery } from '@/store/api/authorsApi'
 import {
   Book,
   useCreateBookMutation,
+  useUploadBookFileMutation,
   useUpdateBookMutation,
 } from '@/store/api/booksApi'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
@@ -13,6 +14,7 @@ import { X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 const bookSchema = z.object({
@@ -21,32 +23,36 @@ const bookSchema = z.object({
     .min(1, 'Title is required')
     .min(2, 'Title must be at least 2 characters')
     .max(255, 'Title must not exceed 255 characters'),
+  slug: z
+    .string()
+    .min(2, 'Slug is required')
+    .regex(
+      /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
+      'Slug must be lowercase and hyphenated',
+    ),
+  summary: z
+    .string()
+    .min(10, 'Summary must be at least 10 characters')
+    .max(2000, 'Summary must not exceed 2000 characters'),
   isbn: z
     .string()
-    .min(1, 'ISBN is required')
-    .min(10, 'ISBN must be at least 10 characters')
+    .min(8, 'ISBN must be at least 8 characters')
     .max(20, 'ISBN must not exceed 20 characters'),
-  authors: z.array(z.string()).min(1, 'At least one author is required'),
-  category: z.string().min(1, 'Category is required'),
-  publisher: z
-    .string()
-    .max(255, 'Publisher must not exceed 255 characters')
-    .optional(),
-  publishedYear: z
-    .number()
-    .min(1000, 'Year must be valid')
-    .max(new Date().getFullYear(), 'Year cannot be in the future')
-    .optional()
-    .or(z.literal(0)),
-  pageCount: z
-    .number()
-    .min(1, 'Page count must be at least 1')
-    .optional()
-    .or(z.literal(0)),
+  authorIds: z.array(z.string()).min(1, 'At least one author is required'),
+  categoryIds: z.array(z.string()).min(1, 'At least one category is required'),
+  language: z.string().min(2).max(20),
+  publicationDate: z.string().optional(),
+  pageCount: z.number().min(1, 'Page count must be at least 1').optional(),
+  coverImageUrl: z.string().url('Invalid cover image URL').optional().or(z.literal('')),
   description: z
     .string()
     .max(2000, 'Description must not exceed 2000 characters')
     .optional(),
+  tags: z.string().optional(),
+  featured: z.boolean(),
+  isAvailable: z.boolean(),
+  ebookUrl: z.string().url('Invalid ebook URL').optional().or(z.literal('')),
+  ebookFormat: z.string().optional(),
 })
 
 type BookFormData = z.infer<typeof bookSchema>
@@ -60,6 +66,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
   const t = useTranslations()
   const [createBook] = useCreateBookMutation()
   const [updateBook] = useUpdateBookMutation()
+  const [uploadBookFile] = useUploadBookFileMutation()
   const { data: authorsData } = useGetAuthorsQuery({})
   const { data: categoriesData } = useGetCategoriesQuery({})
   const [isLoading, setIsLoading] = useState(false)
@@ -75,34 +82,96 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
     defaultValues: book
       ? {
           title: book.title,
+          slug: book.slug,
+          summary: book.summary,
           isbn: book.isbn,
-          authors: book.authors || [],
-          category: book.category,
-          publisher: book.publisher,
-          publishedYear: book.publishedYear,
+          authorIds: book.authorIds || [],
+          categoryIds: book.categoryIds || [],
+          language: book.language || 'en',
+          publicationDate: book.publicationDate?.split('T')[0],
           pageCount: book.pageCount,
-          description: book.description,
+          coverImageUrl: book.coverImageUrl || '',
+          description: book.description || '',
+          tags: book.tags?.join(', '),
+          featured: book.featured,
+          isAvailable: book.isAvailable,
+          ebookFormat: book.files?.[0]?.contentType || 'application/pdf',
+          ebookUrl: book.files?.[0]?.url || '',
         }
       : {
-          authors: [],
+          title: '',
+          slug: '',
+          summary: '',
+          isbn: '',
+          authorIds: [],
+          categoryIds: [],
+          language: 'en',
+          publicationDate: '',
+          coverImageUrl: '',
+          description: '',
+          tags: '',
+          featured: false,
+          isAvailable: true,
+          ebookFormat: 'application/pdf',
+          ebookUrl: '',
         },
   })
 
   const onSubmit = async (data: BookFormData) => {
     setIsLoading(true)
     try {
-      if (book?._id) {
-        await updateBook({
-          id: book._id,
-          body: data,
-        }).unwrap()
-      } else {
-        await createBook(data).unwrap()
+      const payload = {
+        title: data.title,
+        slug: data.slug,
+        summary: data.summary,
+        isbn: data.isbn,
+        authorIds: data.authorIds,
+        categoryIds: data.categoryIds,
+        language: data.language,
+        publicationDate: data.publicationDate || undefined,
+        pageCount: data.pageCount || undefined,
+        coverImageUrl: data.coverImageUrl || undefined,
+        description: data.description,
+        featured: data.featured,
+        isAvailable: data.isAvailable,
+        tags: data.tags
+          ? data.tags
+              .split(',')
+              .map((tag) => tag.trim())
+              .filter(Boolean)
+          : [],
       }
+
+      let savedBookId = book?._id
+
+      if (book?._id) {
+        const updated = await updateBook({
+          id: book._id,
+          body: payload,
+        }).unwrap()
+        savedBookId = updated._id
+      } else {
+        const created = await createBook(payload).unwrap()
+        savedBookId = created._id
+      }
+
+      if (savedBookId && data.ebookUrl && data.ebookFormat) {
+        await uploadBookFile({
+          id: savedBookId,
+          body: {
+            fileName: `${data.slug}.${data.ebookFormat.includes('epub') ? 'epub' : 'pdf'}`,
+            contentType: data.ebookFormat,
+            url: data.ebookUrl,
+            key: data.ebookUrl,
+          },
+        }).unwrap()
+      }
+
+      toast.success(t('common.success'))
       reset()
       onClose()
-    } catch (error) {
-      console.error('Error saving book:', error)
+    } catch {
+      toast.error(t('errors.serverError'))
     } finally {
       setIsLoading(false)
     }
@@ -139,6 +208,32 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
           </div>
 
           <div>
+            <label className="block text-sm font-medium mb-1">Slug</label>
+            <input
+              type="text"
+              {...register('slug')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="book-title-slug"
+            />
+            {errors.slug && (
+              <p className="text-red-600 text-xs mt-1">{errors.slug.message}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Summary</label>
+            <textarea
+              {...register('summary')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background resize-none"
+              rows={3}
+              placeholder="Short summary of this book"
+            />
+            {errors.summary && (
+              <p className="text-red-600 text-xs mt-1">{errors.summary.message}</p>
+            )}
+          </div>
+
+          <div>
             <label className="block text-sm font-medium mb-1">
               {t('books.isbn')}
             </label>
@@ -155,7 +250,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
 
           <div>
             <Controller
-              name="authors"
+              name="authorIds"
               control={control}
               render={({ field }) => (
                 <MultiSelect
@@ -169,58 +264,60 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                   value={field.value}
                   onChange={field.onChange}
                   placeholder="Select authors..."
-                  error={errors.authors?.message}
+                  error={errors.authorIds?.message}
                 />
               )}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              {t('books.category')}
-            </label>
-            <select
-              {...register('category')}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="">Select category</option>
-              {categoriesData?.data.map((cat) => (
-                <option key={cat._id} value={cat._id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            {errors.category && (
-              <p className="text-red-600 text-xs mt-1">
-                {errors.category.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {t('books.publisher')}
-            </label>
-            <input
-              type="text"
-              {...register('publisher')}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              placeholder="Publisher"
+            <Controller
+              name="categoryIds"
+              control={control}
+              render={({ field }) => (
+                <MultiSelect
+                  label={t('books.category')}
+                  options={
+                    categoriesData?.data?.map((category) => ({
+                      id: category._id,
+                      name: category.name,
+                    })) || []
+                  }
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select categories..."
+                  error={errors.categoryIds?.message}
+                />
+              )}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                {t('books.publishedYear')}
+                Publication Date
               </label>
               <input
-                type="number"
-                {...register('publishedYear', { valueAsNumber: true })}
+                type="date"
+                {...register('publicationDate')}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                placeholder="Year"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Language
+              </label>
+              <select
+                {...register('language')}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              >
+                <option value="en">English</option>
+                <option value="bn">Bangla</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
                 {t('books.pageCount')}
@@ -231,6 +328,42 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                 placeholder="Pages"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Cover Image URL
+              </label>
+              <input
+                type="url"
+                {...register('coverImageUrl')}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                placeholder="https://..."
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">E-book URL</label>
+              <input
+                type="url"
+                {...register('ebookUrl')}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                placeholder="https://.../book.pdf"
+              />
+              {errors.ebookUrl && (
+                <p className="text-red-600 text-xs mt-1">{errors.ebookUrl.message}</p>
+              )}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">E-book Format</label>
+              <select
+                {...register('ebookFormat')}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              >
+                <option value="application/pdf">PDF</option>
+                <option value="application/epub+zip">EPUB</option>
+              </select>
             </div>
           </div>
 
@@ -244,6 +377,35 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               rows={3}
               placeholder="Book description"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Tags</label>
+            <input
+              type="text"
+              {...register('tags')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="fiction, mystery, kids"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                {...register('featured')}
+                className="rounded border-border"
+              />
+              {t('books.featured')}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                {...register('isAvailable')}
+                className="rounded border-border"
+              />
+              {t('books.available')}
+            </label>
           </div>
 
           <div className="flex gap-2 pt-4">

@@ -2,14 +2,23 @@
 
 import { DataTable, DataTableColumn } from '@/components/common/DataTable'
 import { PageHeader } from '@/components/common/PageHeader'
-import { Author, useGetAuthorsQuery } from '@/store/api/authorsApi'
+import {
+  Author,
+  useDeleteAuthorMutation,
+  useGetAuthorsQuery,
+} from '@/store/api/authorsApi'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { AuthorFormDialog } from './AuthorFormDialog'
 
 export function AuthorsList() {
   const t = useTranslations()
-  const { data, isLoading } = useGetAuthorsQuery({ page: 1, limit: 20 })
+  const { data, isLoading, isError, refetch } = useGetAuthorsQuery({
+    page: 1,
+    limit: 20,
+  })
+  const [deleteAuthor, { isLoading: isDeleting }] = useDeleteAuthorMutation()
   const [showDialog, setShowDialog] = useState(false)
   const [editingAuthor, setEditingAuthor] = useState<Author | null>(null)
 
@@ -28,6 +37,21 @@ export function AuthorsList() {
     setEditingAuthor(null)
   }
 
+  const handleDelete = async (author: Author) => {
+    const confirmed = window.confirm(t('common.confirmDelete'))
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await deleteAuthor(author._id).unwrap()
+      toast.success(t('common.success'))
+    } catch {
+      toast.error(t('errors.serverError'))
+    }
+  }
+
   const columns: DataTableColumn<Author>[] = [
     {
       key: 'name',
@@ -39,8 +63,13 @@ export function AuthorsList() {
       label: t('authors.bio'),
     },
     {
-      key: 'verified',
-      label: t('authors.verified'),
+      key: 'countryCode',
+      label: 'Country',
+      render: (value) => String(value || '—'),
+    },
+    {
+      key: 'isActive',
+      label: 'Active',
       render: (value) => (Boolean(value) ? '✓' : '–'),
     },
     {
@@ -52,6 +81,27 @@ export function AuthorsList() {
     },
   ]
 
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <PageHeader
+          title={t('authors.title')}
+          description={t('authors.description')}
+        />
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <p className="text-sm text-destructive">{t('errors.serverError')}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="mt-3 rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -62,9 +112,10 @@ export function AuthorsList() {
       <DataTable
         columns={columns}
         data={data?.data || []}
-        isLoading={isLoading}
+        isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
+        onDelete={handleDelete}
         searchPlaceholder={`${t('common.search')} authors...`}
         noDataMessage={t('authors.noAuthors')}
       />

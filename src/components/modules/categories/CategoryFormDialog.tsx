@@ -11,12 +11,20 @@ import { X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 const categorySchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  parent: z.string().optional(),
+  name: z.string().min(2, 'Name is required').max(120),
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional()
+    .or(z.literal('')),
+  description: z.string().max(2000).optional(),
+  parentId: z.string().optional(),
+  sortOrder: z.number().int().min(0),
+  isActive: z.boolean(),
 })
 
 type CategoryFormData = z.infer<typeof categorySchema>
@@ -46,10 +54,20 @@ export function CategoryFormDialog({
     defaultValues: category
       ? {
           name: category.name,
+          slug: category.slug || '',
           description: category.description,
-          parent: category.parent,
+          parentId: category.parentId || '',
+          sortOrder: category.sortOrder,
+          isActive: category.isActive,
         }
-      : undefined,
+      : {
+          name: '',
+          slug: '',
+          description: '',
+          parentId: '',
+          sortOrder: 0,
+          isActive: true,
+        },
   })
 
   const onSubmit = async (data: CategoryFormData) => {
@@ -58,25 +76,32 @@ export function CategoryFormDialog({
       if (category?._id) {
         await updateCategory({
           id: category._id,
-          body: data,
+          body: {
+            ...data,
+            slug: data.slug || undefined,
+            parentId: data.parentId || undefined,
+          },
         }).unwrap()
       } else {
-        await createCategory(data).unwrap()
+        await createCategory({
+          ...data,
+          slug: data.slug || undefined,
+          parentId: data.parentId || undefined,
+        }).unwrap()
       }
+      toast.success(t('common.success'))
       reset()
       onClose()
-    } catch (error) {
-      console.error('Error saving category:', error)
+    } catch {
+      toast.error(t('errors.serverError'))
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Filter out current category and its children from parent options
   const availableParents =
     categoriesData?.data.filter(
-      (cat) =>
-        cat._id !== category?._id && !category?.children?.includes(cat._id),
+      (cat) => cat._id !== category?._id,
     ) || []
 
   return (
@@ -110,6 +135,16 @@ export function CategoryFormDialog({
           </div>
 
           <div>
+            <label className="block text-sm font-medium mb-1">Slug</label>
+            <input
+              type="text"
+              {...register('slug')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="category-slug"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium mb-1">
               {t('common.description')}
             </label>
@@ -126,7 +161,7 @@ export function CategoryFormDialog({
               {t('categories.parentCategory')}
             </label>
             <select
-              {...register('parent')}
+              {...register('parentId')}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
             >
               <option value="">No parent</option>
@@ -136,6 +171,29 @@ export function CategoryFormDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Sort Order</label>
+              <input
+                type="number"
+                {...register('sortOrder', { valueAsNumber: true })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                min={0}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Active</label>
+              <label className="mt-2 inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  {...register('isActive')}
+                  className="rounded border-border"
+                />
+                Yes
+              </label>
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">

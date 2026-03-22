@@ -10,11 +10,22 @@ import { X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { toast } from 'sonner'
 import { z } from 'zod'
 
 const authorSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  bio: z.string().optional(),
+  name: z.string().min(2, 'Name is required').max(150),
+  bio: z.string().max(3000).optional(),
+  countryCode: z
+    .string()
+    .min(2)
+    .max(3)
+    .regex(/^[A-Za-z]{2,3}$/)
+    .optional()
+    .or(z.literal('')),
+  avatarUrl: z.string().url('Invalid avatar URL').optional().or(z.literal('')),
+  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
+  isActive: z.boolean(),
 })
 
 type AuthorFormData = z.infer<typeof authorSchema>
@@ -41,8 +52,19 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
       ? {
           name: author.name,
           bio: author.bio,
+          countryCode: author.countryCode || '',
+          avatarUrl: author.avatarUrl || '',
+          website: author.website || '',
+          isActive: author.isActive,
         }
-      : undefined,
+      : {
+          name: '',
+          bio: '',
+          countryCode: '',
+          avatarUrl: '',
+          website: '',
+          isActive: true,
+        },
   })
 
   const onSubmit = async (data: AuthorFormData) => {
@@ -51,15 +73,26 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
       if (author?._id) {
         await updateAuthor({
           id: author._id,
-          body: data,
+          body: {
+            ...data,
+            countryCode: data.countryCode || undefined,
+            avatarUrl: data.avatarUrl || undefined,
+            website: data.website || undefined,
+          },
         }).unwrap()
       } else {
-        await createAuthor(data).unwrap()
+        await createAuthor({
+          ...data,
+          countryCode: data.countryCode || undefined,
+          avatarUrl: data.avatarUrl || undefined,
+          website: data.website || undefined,
+        }).unwrap()
       }
+      toast.success(t('common.success'))
       reset()
       onClose()
-    } catch (error) {
-      console.error('Error saving author:', error)
+    } catch {
+      toast.error(t('errors.serverError'))
     } finally {
       setIsLoading(false)
     }
@@ -103,6 +136,57 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
               rows={4}
               placeholder="Author biography"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Country</label>
+              <input
+                type="text"
+                {...register('countryCode')}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                placeholder="BD"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Active</label>
+              <label className="mt-2 inline-flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  {...register('isActive')}
+                  className="rounded border-border"
+                />
+                Yes
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Avatar URL</label>
+            <input
+              type="url"
+              {...register('avatarUrl')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="https://..."
+            />
+            {errors.avatarUrl && (
+              <p className="text-red-600 text-xs mt-1">
+                {errors.avatarUrl.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Website</label>
+            <input
+              type="url"
+              {...register('website')}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="https://..."
+            />
+            {errors.website && (
+              <p className="text-red-600 text-xs mt-1">{errors.website.message}</p>
+            )}
           </div>
 
           <div className="flex gap-2 pt-4">

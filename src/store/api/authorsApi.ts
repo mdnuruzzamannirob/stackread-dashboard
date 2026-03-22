@@ -1,11 +1,41 @@
 import { baseApi } from '../baseApi'
 
+interface ApiEnvelope<T> {
+  success: boolean
+  message: string
+  data: T
+}
+
+interface ApiEnvelopeWithMeta<T, M> extends ApiEnvelope<T> {
+  meta: M
+}
+
+interface PaginationMeta {
+  total: number
+  page: number
+  limit: number
+}
+
+interface BackendAuthor {
+  id: string
+  name: string
+  bio?: string
+  countryCode?: string
+  avatarUrl?: string
+  website?: string
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Author {
   _id: string
   name: string
   bio?: string
-  profileImage?: string
-  verified: boolean
+  countryCode?: string
+  avatarUrl?: string
+  website?: string
+  isActive: boolean
   createdAt: string
   updatedAt: string
 }
@@ -13,11 +43,19 @@ export interface Author {
 export interface CreateAuthorRequest {
   name: string
   bio?: string
+  countryCode?: string
+  avatarUrl?: string
+  website?: string
+  isActive?: boolean
 }
 
 export interface UpdateAuthorRequest {
   name?: string
   bio?: string
+  countryCode?: string
+  avatarUrl?: string
+  website?: string
+  isActive?: boolean
 }
 
 export interface AuthorsListResponse {
@@ -26,6 +64,18 @@ export interface AuthorsListResponse {
   page: number
   limit: number
 }
+
+const mapAuthor = (author: BackendAuthor): Author => ({
+  _id: author.id,
+  name: author.name,
+  bio: author.bio,
+  countryCode: author.countryCode,
+  avatarUrl: author.avatarUrl,
+  website: author.website,
+  isActive: Boolean(author.isActive),
+  createdAt: author.createdAt,
+  updatedAt: author.updatedAt,
+})
 
 export const authorsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
@@ -41,11 +91,21 @@ export const authorsApi = baseApi.injectEndpoints({
           ...(params.search && { search: params.search }),
         },
       }),
+      transformResponse: (
+        response: ApiEnvelopeWithMeta<BackendAuthor[], PaginationMeta>,
+      ): AuthorsListResponse => ({
+        data: (response.data || []).map(mapAuthor),
+        total: Number(response.meta?.total ?? 0),
+        page: Number(response.meta?.page ?? 1),
+        limit: Number(response.meta?.limit ?? 10),
+      }),
       providesTags: [{ type: 'Authors', id: 'LIST' }],
     }),
 
     getAuthorById: builder.query<Author, string>({
       query: (id) => `/authors/${id}`,
+      transformResponse: (response: ApiEnvelope<BackendAuthor>) =>
+        mapAuthor(response.data),
       providesTags: (result, error, id) => [{ type: 'Authors', id }],
     }),
 
@@ -55,6 +115,8 @@ export const authorsApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
+      transformResponse: (response: ApiEnvelope<BackendAuthor>) =>
+        mapAuthor(response.data),
       invalidatesTags: [{ type: 'Authors', id: 'LIST' }],
     }),
 
@@ -67,6 +129,8 @@ export const authorsApi = baseApi.injectEndpoints({
         method: 'PUT',
         body,
       }),
+      transformResponse: (response: ApiEnvelope<BackendAuthor>) =>
+        mapAuthor(response.data),
       invalidatesTags: (result, error, { id }) => [
         { type: 'Authors', id },
         { type: 'Authors', id: 'LIST' },
@@ -78,6 +142,7 @@ export const authorsApi = baseApi.injectEndpoints({
         url: `/authors/${id}`,
         method: 'DELETE',
       }),
+      transformResponse: () => ({ success: true }),
       invalidatesTags: [{ type: 'Authors', id: 'LIST' }],
     }),
   }),

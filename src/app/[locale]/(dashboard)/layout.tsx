@@ -1,5 +1,4 @@
 import { DashboardSidebar } from '@/components/layout/DashboardSidebar'
-import { DashboardTopbar } from '@/components/layout/DashboardTopbar'
 import { getSession } from '@/lib/auth/session'
 import { redirect } from 'next/navigation'
 
@@ -22,11 +21,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <DashboardTopbar />
-      <div className="flex pt-16 flex-1">
+    <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen">
         <DashboardSidebar />
-        <main className="flex-1 ml-64 p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 pt-20 md:p-6 md:pt-6 lg:p-8">
+          {children}
+        </main>
       </div>
     </div>
   )
