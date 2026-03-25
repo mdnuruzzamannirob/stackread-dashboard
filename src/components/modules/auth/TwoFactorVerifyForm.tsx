@@ -1,12 +1,10 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { OTPInput } from '@/components/common/OTPInput'
@@ -56,27 +54,20 @@ export function TwoFactorVerifyForm() {
 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [method, setMethod] = useState<'totp' | 'email'>('totp')
+  const [formData, setFormData] = useState<Verify2FASchema>({
+    otp: '',
+    emailOtp: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [verify2FA, { isLoading }] = useVerify2FAMutation()
   const [sendEmailOtp, { isLoading: isSendingEmailOtp }] =
     useSendStaff2FAEmailOtpMutation()
   const [getStaffMe] = useLazyGetStaffMeQuery()
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    reset,
-  } = useForm<Verify2FASchema>({
-    resolver: zodResolver(verify2FASchema),
-    defaultValues: {
-      otp: '',
-      emailOtp: '',
-    },
-  })
-
-  const otpValue = watch('otp') || ''
-  const emailOtpValue = watch('emailOtp') || ''
+  const handleFieldChange = (value: string, fieldName: string) => {
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
 
   useEffect(() => {
     if (!tempToken) {
@@ -84,20 +75,33 @@ export function TwoFactorVerifyForm() {
     }
   }, [locale, router, tempToken])
 
-  const onSubmit = async (values: Verify2FASchema) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     if (!tempToken) {
       router.replace(`/${locale}/login`)
       return
     }
 
     setSubmitError(null)
+    setFieldErrors({})
+
+    const validation = verify2FASchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
       const payload = {
         tempToken,
-        ...(method === 'email' && emailOtpValue
-          ? { emailOtp: emailOtpValue }
-          : { otp: otpValue }),
+        ...(method === 'email' && formData.emailOtp
+          ? { emailOtp: formData.emailOtp }
+          : { otp: formData.otp }),
       }
 
       const response = await verify2FA(payload as any).unwrap()
@@ -137,7 +141,8 @@ export function TwoFactorVerifyForm() {
     try {
       await sendEmailOtp(tempToken).unwrap()
       setMethod('email')
-      reset()
+      setFormData({ otp: '', emailOtp: '' })
+      setFieldErrors({})
       toast.success(t('twoFactorEmailOtpSent'))
     } catch (error) {
       const message = getErrorMessage(error, t('twoFactorEmailOtpSendFailed'))
@@ -163,40 +168,28 @@ export function TwoFactorVerifyForm() {
             : t('twoFactorVerifyDesc')}
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
           {method === 'totp' ? (
-            <Controller
-              control={control}
-              name="otp"
-              render={({ field }) => (
-                <OTPInput
-                  id="otp"
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  placeholder={t('otpPlaceholder')}
-                  disabled={isLoading}
-                />
-              )}
+            <OTPInput
+              id="otp"
+              value={formData.otp || ''}
+              onChange={(value) => handleFieldChange(value, 'otp')}
+              placeholder={t('otpPlaceholder')}
+              disabled={isLoading}
             />
           ) : (
-            <Controller
-              control={control}
-              name="emailOtp"
-              render={({ field }) => (
-                <OTPInput
-                  id="emailOtp"
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  placeholder={t('otpPlaceholder')}
-                  disabled={isLoading}
-                />
-              )}
+            <OTPInput
+              id="emailOtp"
+              value={formData.emailOtp || ''}
+              onChange={(value) => handleFieldChange(value, 'emailOtp')}
+              placeholder={t('otpPlaceholder')}
+              disabled={isLoading}
             />
           )}
 
-          {errors[method === 'email' ? 'emailOtp' : 'otp']?.message ? (
+          {fieldErrors[method === 'email' ? 'emailOtp' : 'otp'] ? (
             <p className="text-sm text-destructive">
-              {errors[method === 'email' ? 'emailOtp' : 'otp']?.message}
+              {fieldErrors[method === 'email' ? 'emailOtp' : 'otp']}
             </p>
           ) : null}
           {submitError ? (
@@ -225,7 +218,8 @@ export function TwoFactorVerifyForm() {
               variant="outline"
               onClick={() => {
                 setMethod('totp')
-                reset()
+                setFormData({ otp: '', emailOtp: '' })
+                setFieldErrors({})
               }}
               disabled={isLoading}
               className="h-10 w-full"

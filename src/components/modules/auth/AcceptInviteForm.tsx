@@ -1,12 +1,10 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -46,28 +44,57 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [acceptInvite, { isLoading }] = useAcceptInviteMutation()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AcceptInviteSchema>({
-    resolver: zodResolver(acceptInviteSchema),
-    defaultValues: {
-      token,
-      password: '',
-      confirmPassword: '',
-    },
+  const [formData, setFormData] = useState<AcceptInviteSchema>({
+    token,
+    password: '',
+    confirmPassword: '',
   })
 
-  const onSubmit = async (values: AcceptInviteSchema) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: keyof AcceptInviteSchema,
+  ) => {
+    const value = e.target.value
+    setFormData((prev) => ({
+      ...prev,
+      [fieldName]: value,
+    }))
+    // Clear field error when user starts typing
+    if (fieldErrors[fieldName]) {
+      setFieldErrors((prev) => {
+        const updated = { ...prev }
+        delete updated[fieldName]
+        return updated
+      })
+    }
+  }
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setSubmitError(null)
+    setFieldErrors({})
+
+    // Validate using schema
+    const validation = acceptInviteSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]
+        if (typeof path === 'string') {
+          errors[path] = issue.message
+        }
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
       await acceptInvite({
-        token: values.token,
-        password: values.password,
+        token: formData.token,
+        password: formData.password,
       }).unwrap()
       toast.success(t('inviteActivated'))
       router.push(`/${locale}/login`)
@@ -96,8 +123,8 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
           {t('setupRequired')}
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-          <input type="hidden" {...register('token')} />
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <input type="hidden" value={token} onChange={() => {}} />
 
           <div className="space-y-1.5">
             <label htmlFor="password" className="text-sm font-medium">
@@ -110,7 +137,8 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
                 autoComplete="new-password"
                 placeholder={t('passwordPlaceholder')}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-                {...register('password')}
+                value={formData.password}
+                onChange={(e) => handleFieldChange(e, 'password')}
               />
               <button
                 type="button"
@@ -127,11 +155,9 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
                 )}
               </button>
             </div>
-            {errors.password?.message ? (
-              <p className="text-sm text-destructive">
-                {errors.password.message}
-              </p>
-            ) : null}
+            {fieldErrors.password && (
+              <p className="text-sm text-destructive">{fieldErrors.password}</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -145,7 +171,8 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
                 autoComplete="new-password"
                 placeholder={t('passwordPlaceholder')}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-                {...register('confirmPassword')}
+                value={formData.confirmPassword}
+                onChange={(e) => handleFieldChange(e, 'confirmPassword')}
               />
               <button
                 type="button"
@@ -162,11 +189,11 @@ export function AcceptInviteForm({ token }: AcceptInviteFormProps) {
                 )}
               </button>
             </div>
-            {errors.confirmPassword?.message ? (
+            {fieldErrors.confirmPassword && (
               <p className="text-sm text-destructive">
-                {errors.confirmPassword.message}
+                {fieldErrors.confirmPassword}
               </p>
-            ) : null}
+            )}
           </div>
 
           {submitError ? (

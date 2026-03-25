@@ -1,12 +1,10 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { OTPInput } from '@/components/common/OTPInput'
@@ -47,33 +45,43 @@ export function VerifyResetOtpForm() {
 
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [formData, setFormData] = useState<VerifyResetOtpSchema>({
+    email: initialEmail,
+    otp: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [verifyResetOtp, { isLoading }] = useVerifyStaffResetOtpMutation()
   const [resendResetOtp, { isLoading: isResending }] =
     useResendStaffResetOtpMutation()
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<VerifyResetOtpSchema>({
-    resolver: zodResolver(verifyResetOtpSchema),
-    defaultValues: {
-      email: initialEmail,
-      otp: '',
-    },
-  })
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string,
+  ) => {
+    const value = e.target.value
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
 
-  const emailValue = watch('email')
-  const otpValue = watch('otp')
-
-  const onSubmit = async (values: VerifyResetOtpSchema) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setSubmitError(null)
+    setFieldErrors({})
+
+    const validation = verifyResetOtpSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
-      const response = await verifyResetOtp(values).unwrap()
+      const response = await verifyResetOtp(validation.data).unwrap()
       toast.success(t('resetOtpVerified'))
       router.push(
         `/${locale}/reset-password?token=${encodeURIComponent(response.resetToken)}`,
@@ -89,14 +97,14 @@ export function VerifyResetOtpForm() {
     setSubmitError(null)
     setSuccessMessage(null)
 
-    if (!emailValue) {
+    if (!formData.email) {
       setSubmitError(t('invalidCredentials'))
       toast.error(t('invalidCredentials'))
       return
     }
 
     try {
-      await resendResetOtp(emailValue).unwrap()
+      await resendResetOtp(formData.email).unwrap()
       setSuccessMessage(t('resetOtpResent'))
       toast.success(t('resetOtpResent'))
     } catch (error) {
@@ -121,7 +129,7 @@ export function VerifyResetOtpForm() {
           {t('verifyResetOtpDesc')}
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-medium">
               {t('email')}
@@ -131,11 +139,12 @@ export function VerifyResetOtpForm() {
               type="email"
               autoComplete="email"
               placeholder={t('emailPlaceholder')}
+              value={formData.email}
+              onChange={(e) => handleFieldChange(e, 'email')}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-              {...register('email')}
             />
-            {errors.email?.message ? (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+            {fieldErrors.email ? (
+              <p className="text-sm text-destructive">{fieldErrors.email}</p>
             ) : null}
           </div>
 
@@ -145,13 +154,15 @@ export function VerifyResetOtpForm() {
             </label>
             <OTPInput
               id="otp"
-              value={otpValue}
-              onChange={(value) => setValue('otp', value)}
+              value={formData.otp}
+              onChange={(value) =>
+                setFormData((prev) => ({ ...prev, otp: value }))
+              }
               placeholder={t('otpPlaceholder')}
               disabled={isLoading}
             />
-            {errors.otp?.message ? (
-              <p className="text-sm text-destructive">{errors.otp.message}</p>
+            {fieldErrors.otp ? (
+              <p className="text-sm text-destructive">{fieldErrors.otp}</p>
             ) : null}
           </div>
 

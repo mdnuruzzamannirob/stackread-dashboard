@@ -340,9 +340,11 @@ export const booksApi = baseApi.injectEndpoints({
       { id: string; available: boolean }
     >({
       query: ({ id, available }) => ({
-        url: `/admin/books/${id}/available`,
+        url: `/admin/books/${id}/availability`,
         method: 'PATCH',
-        body: { isAvailable: available },
+        body: {
+          availabilityStatus: available ? 'available' : 'unavailable',
+        },
       }),
       transformResponse: (response: ApiEnvelope<BackendBook>): Book =>
         mapBook(response.data),

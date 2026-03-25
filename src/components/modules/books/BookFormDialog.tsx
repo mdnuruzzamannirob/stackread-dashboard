@@ -20,11 +20,9 @@ import {
 } from '@/store/api/booksApi'
 import { useGetCategoriesQuery } from '@/store/api/categoriesApi'
 import { useGetPublishersQuery } from '@/store/api/publishersApi'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, Trash2, Upload, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -178,16 +176,8 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
   const [deletingFile, setDeletingFile] = useState<BookFile | null>(null)
   const existingFiles = useMemo(() => book?.files || [], [book?.files])
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-    reset,
-  } = useForm<BookFormData, undefined, BookFormValues>({
-    resolver: zodResolver(bookSchema),
-    mode: 'onBlur',
-    defaultValues: book
+  const [formData, setFormData] = useState<BookFormData>(
+    book
       ? {
           title: book.title,
           slug: book.slug,
@@ -197,7 +187,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
           categoryIds: book.categoryIds || [],
           publisherId: book.publisherId || '',
           language: book.language || 'en',
-          publicationDate: book.publicationDate?.split('T')[0],
+          publicationDate: book.publicationDate?.split('T')[0] || '',
           pageCount: book.pageCount,
           coverImagePublicId: book.coverImage?.publicId || '',
           coverImageUrl: book.coverImage?.url || '',
@@ -205,7 +195,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
           coverImageHeight: book.coverImage?.height,
           description: book.description || '',
           edition: book.edition || '',
-          tags: book.tags?.join(', '),
+          tags: book.tags?.join(', ') || '',
           featured: book.featured ?? false,
           isAvailable: book.isAvailable ?? true,
           accessLevel: book.accessLevel || 'free',
@@ -234,11 +224,57 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
           accessLevel: 'free',
           isPublished: false,
         },
-  })
+  )
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const onSubmit = async (data: BookFormData) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+    fieldName: string,
+  ) => {
+    const target = e.target as any
+    const value =
+      target.type === 'checkbox'
+        ? target.checked
+        : (fieldName === 'pageCount' ||
+              fieldName === 'coverImageWidth' ||
+              fieldName === 'coverImageHeight') &&
+            target.value
+          ? parseInt(target.value, 10)
+          : (fieldName === 'pageCount' ||
+                fieldName === 'coverImageWidth' ||
+                fieldName === 'coverImageHeight') &&
+              !target.value
+            ? undefined
+            : target.value
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
+
+  const handleArrayFieldChange = (values: string[], fieldName: string) => {
+    setFormData((prev) => ({ ...prev, [fieldName]: values }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setFieldErrors({})
+
+    const validation = bookSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
+
     setIsLoading(true)
     try {
+      const data = validation.data
       const coverImageProvided =
         data.coverImagePublicId ||
         data.coverImageUrl ||
@@ -326,7 +362,29 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
         }
       }
 
-      reset()
+      setFormData({
+        title: '',
+        slug: '',
+        summary: '',
+        isbn: '',
+        authorIds: [],
+        categoryIds: [],
+        publisherId: '',
+        language: 'en',
+        publicationDate: '',
+        pageCount: undefined,
+        coverImagePublicId: '',
+        coverImageUrl: '',
+        coverImageWidth: undefined,
+        coverImageHeight: undefined,
+        description: '',
+        edition: '',
+        tags: '',
+        featured: false,
+        isAvailable: true,
+        accessLevel: 'free',
+        isPublished: false,
+      })
       setSelectedFiles([])
       onClose()
     } catch (error) {
@@ -392,7 +450,7 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
         </div>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={onSubmit}
           className="flex-1 overflow-y-auto p-6 space-y-6"
         >
           <div>
@@ -401,12 +459,13 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register('title')}
+              value={formData.title}
+              onChange={(e) => handleFieldChange(e, 'title')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.title)}
+              aria-invalid={Boolean(fieldErrors.title)}
               placeholder="Book title (2-200 characters)"
             />
-            <FieldError message={errors.title?.message} />
+            <FieldError message={fieldErrors.title} />
           </div>
 
           <div>
@@ -415,12 +474,13 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register('slug')}
+              value={formData.slug}
+              onChange={(e) => handleFieldChange(e, 'slug')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.slug)}
+              aria-invalid={Boolean(fieldErrors.slug)}
               placeholder="book-title-slug"
             />
-            <FieldError message={errors.slug?.message} />
+            <FieldError message={fieldErrors.slug} />
           </div>
 
           <div>
@@ -429,13 +489,14 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               <span className="text-red-500">*</span>
             </Label>
             <Textarea
-              {...register('summary')}
+              value={formData.summary}
+              onChange={(e) => handleFieldChange(e, 'summary')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.summary)}
+              aria-invalid={Boolean(fieldErrors.summary)}
               rows={3}
               placeholder="Book summary (10-2000 characters)"
             />
-            <FieldError message={errors.summary?.message} />
+            <FieldError message={fieldErrors.summary} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -447,12 +508,13 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                 </span>
               </Label>
               <Input
-                {...register('isbn')}
+                value={formData.isbn}
+                onChange={(e) => handleFieldChange(e, 'isbn')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.isbn)}
+                aria-invalid={Boolean(fieldErrors.isbn)}
                 placeholder="ISBN (8-40 chars)"
               />
-              <FieldError message={errors.isbn?.message} />
+              <FieldError message={fieldErrors.isbn} />
             </div>
             <div>
               <Label className="mb-2 block">
@@ -462,57 +524,46 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                 </span>
               </Label>
               <Input
-                {...register('edition')}
+                value={formData.edition}
+                onChange={(e) => handleFieldChange(e, 'edition')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.edition)}
+                aria-invalid={Boolean(fieldErrors.edition)}
                 placeholder="First Edition"
               />
-              <FieldError message={errors.edition?.message} />
+              <FieldError message={fieldErrors.edition} />
             </div>
           </div>
 
           {/* Authors & Categories */}
           <div>
-            <Controller
-              name="authorIds"
-              control={control}
-              render={({ field }) => (
-                <MultiSelect
-                  label={t('books.authors')}
-                  options={
-                    authorsData?.data?.map((author) => ({
-                      id: author._id,
-                      name: author.name,
-                    })) || []
-                  }
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select authors..."
-                  error={errors.authorIds?.message}
-                />
-              )}
+            <MultiSelect
+              label={t('books.authors')}
+              options={
+                authorsData?.data?.map((author) => ({
+                  id: author._id,
+                  name: author.name,
+                })) || []
+              }
+              value={formData.authorIds}
+              onChange={(value) => handleArrayFieldChange(value, 'authorIds')}
+              placeholder="Select authors..."
+              error={fieldErrors.authorIds}
             />
           </div>
 
           <div>
-            <Controller
-              name="categoryIds"
-              control={control}
-              render={({ field }) => (
-                <MultiSelect
-                  label={t('books.category')}
-                  options={
-                    categoriesData?.data?.map((category) => ({
-                      id: category._id,
-                      name: category.name,
-                    })) || []
-                  }
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder="Select categories..."
-                  error={errors.categoryIds?.message}
-                />
-              )}
+            <MultiSelect
+              label={t('books.category')}
+              options={
+                categoriesData?.data?.map((category) => ({
+                  id: category._id,
+                  name: category.name,
+                })) || []
+              }
+              value={formData.categoryIds}
+              onChange={(value) => handleArrayFieldChange(value, 'categoryIds')}
+              placeholder="Select categories..."
+              error={fieldErrors.categoryIds}
             />
           </div>
 
@@ -520,14 +571,15 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
             <div>
               <Label className="mb-2 block">Language</Label>
               <Select
-                {...register('language')}
+                value={formData.language}
+                onChange={(e) => handleFieldChange(e, 'language')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.language)}
+                aria-invalid={Boolean(fieldErrors.language)}
               >
                 <option value="en">English</option>
                 <option value="bn">Bangla</option>
               </Select>
-              <FieldError message={errors.language?.message} />
+              <FieldError message={fieldErrors.language} />
             </div>
             <div>
               <Label className="mb-2 block">
@@ -538,11 +590,12 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </Label>
               <Input
                 type="date"
-                {...register('publicationDate')}
+                value={formData.publicationDate}
+                onChange={(e) => handleFieldChange(e, 'publicationDate')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.publicationDate)}
+                aria-invalid={Boolean(fieldErrors.publicationDate)}
               />
-              <FieldError message={errors.publicationDate?.message} />
+              <FieldError message={fieldErrors.publicationDate} />
             </div>
           </div>
 
@@ -554,18 +607,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </label>
               <input
                 type="number"
-                {...register('pageCount', { valueAsNumber: true })}
+                value={formData.pageCount || ''}
+                onChange={(e) => handleFieldChange(e, 'pageCount')}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.pageCount
+                  fieldErrors.pageCount
                     ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                     : 'border-border focus:ring-1 focus:ring-primary'
                 } focus:outline-none disabled:opacity-50`}
                 placeholder="Pages"
               />
-              {errors.pageCount && (
+              {fieldErrors.pageCount && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.pageCount.message}
+                  {fieldErrors.pageCount}
                 </p>
               )}
             </div>
@@ -575,9 +629,10 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                 Publisher
               </label>
               <Select
-                {...register('publisherId')}
+                value={formData.publisherId}
+                onChange={(e) => handleFieldChange(e, 'publisherId')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.publisherId)}
+                aria-invalid={Boolean(fieldErrors.publisherId)}
               >
                 <option value="">No publisher</option>
                 {publishersData?.data?.map((publisher) => (
@@ -586,9 +641,9 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
                   </option>
                 ))}
               </Select>
-              {errors.publisherId && (
+              {fieldErrors.publisherId && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.publisherId.message}
+                  {fieldErrors.publisherId}
                 </p>
               )}
             </div>
@@ -599,18 +654,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </label>
               <input
                 type="text"
-                {...register('coverImagePublicId')}
+                value={formData.coverImagePublicId}
+                onChange={(e) => handleFieldChange(e, 'coverImagePublicId')}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.coverImagePublicId
+                  fieldErrors.coverImagePublicId
                     ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                     : 'border-border focus:ring-1 focus:ring-primary'
                 } focus:outline-none disabled:opacity-50`}
                 placeholder="books/cover-image-public-id"
               />
-              {errors.coverImagePublicId && (
+              {fieldErrors.coverImagePublicId && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.coverImagePublicId.message}
+                  {fieldErrors.coverImagePublicId}
                 </p>
               )}
             </div>
@@ -621,18 +677,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </label>
               <input
                 type="url"
-                {...register('coverImageUrl')}
+                value={formData.coverImageUrl}
+                onChange={(e) => handleFieldChange(e, 'coverImageUrl')}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.coverImageUrl
+                  fieldErrors.coverImageUrl
                     ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                     : 'border-border focus:ring-1 focus:ring-primary'
                 } focus:outline-none disabled:opacity-50`}
                 placeholder="https://..."
               />
-              {errors.coverImageUrl && (
+              {fieldErrors.coverImageUrl && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.coverImageUrl.message}
+                  {fieldErrors.coverImageUrl}
                 </p>
               )}
             </div>
@@ -643,18 +700,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </label>
               <input
                 type="number"
-                {...register('coverImageWidth', { valueAsNumber: true })}
+                value={formData.coverImageWidth || ''}
+                onChange={(e) => handleFieldChange(e, 'coverImageWidth')}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.coverImageWidth
+                  fieldErrors.coverImageWidth
                     ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                     : 'border-border focus:ring-1 focus:ring-primary'
                 } focus:outline-none disabled:opacity-50`}
                 placeholder="Width in pixels"
               />
-              {errors.coverImageWidth && (
+              {fieldErrors.coverImageWidth && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.coverImageWidth.message}
+                  {fieldErrors.coverImageWidth}
                 </p>
               )}
             </div>
@@ -665,18 +723,19 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               </label>
               <input
                 type="number"
-                {...register('coverImageHeight', { valueAsNumber: true })}
+                value={formData.coverImageHeight || ''}
+                onChange={(e) => handleFieldChange(e, 'coverImageHeight')}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                  errors.coverImageHeight
+                  fieldErrors.coverImageHeight
                     ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                     : 'border-border focus:ring-1 focus:ring-primary'
                 } focus:outline-none disabled:opacity-50`}
                 placeholder="Height in pixels"
               />
-              {errors.coverImageHeight && (
+              {fieldErrors.coverImageHeight && (
                 <p className="text-red-600 text-xs mt-1">
-                  {errors.coverImageHeight.message}
+                  {fieldErrors.coverImageHeight}
                 </p>
               )}
             </div>
@@ -688,19 +747,20 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               {t('common.description')}
             </label>
             <textarea
-              {...register('description')}
+              value={formData.description}
+              onChange={(e) => handleFieldChange(e, 'description')}
               disabled={isLoading}
               className={`w-full px-3 py-2 border rounded-lg bg-background resize-none transition ${
-                errors.description
+                fieldErrors.description
                   ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                   : 'border-border focus:ring-1 focus:ring-primary'
               } focus:outline-none disabled:opacity-50`}
               rows={3}
               placeholder="Detailed description (10-10000 characters)"
             />
-            {errors.description && (
+            {fieldErrors.description && (
               <p className="text-red-600 text-xs mt-1">
-                {errors.description.message}
+                {fieldErrors.description}
               </p>
             )}
           </div>
@@ -710,17 +770,18 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
             <label className="block text-sm font-medium mb-2">Tags</label>
             <input
               type="text"
-              {...register('tags')}
+              value={formData.tags}
+              onChange={(e) => handleFieldChange(e, 'tags')}
               disabled={isLoading}
               className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.tags
+                fieldErrors.tags
                   ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                   : 'border-border focus:ring-1 focus:ring-primary'
               } focus:outline-none disabled:opacity-50`}
               placeholder="fiction, mystery, kids (comma separated)"
             />
-            {errors.tags && (
-              <p className="text-red-600 text-xs mt-1">{errors.tags.message}</p>
+            {fieldErrors.tags && (
+              <p className="text-red-600 text-xs mt-1">{fieldErrors.tags}</p>
             )}
           </div>
 
@@ -730,10 +791,11 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               Access Level
             </label>
             <select
-              {...register('accessLevel')}
+              value={formData.accessLevel}
+              onChange={(e) => handleFieldChange(e, 'accessLevel')}
               disabled={isLoading}
               className={`w-full px-3 py-2 border rounded-lg bg-background transition ${
-                errors.accessLevel
+                fieldErrors.accessLevel
                   ? 'border-red-500 ring-1 ring-red-500 focus:ring-red-500'
                   : 'border-border focus:ring-1 focus:ring-primary'
               } focus:outline-none disabled:opacity-50`}
@@ -742,9 +804,9 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
               <option value="basic">Basic</option>
               <option value="premium">Premium</option>
             </select>
-            {errors.accessLevel && (
+            {fieldErrors.accessLevel && (
               <p className="text-red-600 text-xs mt-1">
-                {errors.accessLevel.message}
+                {fieldErrors.accessLevel}
               </p>
             )}
           </div>
@@ -843,15 +905,27 @@ export function BookFormDialog({ book, onClose }: BookFormDialogProps) {
 
           <div className="grid grid-cols-3 gap-4">
             <Label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox {...register('featured')} disabled={isLoading} />
+              <Checkbox
+                checked={formData.featured}
+                onChange={(e) => handleFieldChange(e as any, 'featured')}
+                disabled={isLoading}
+              />
               <span>{t('books.featured')}</span>
             </Label>
             <Label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox {...register('isAvailable')} disabled={isLoading} />
+              <Checkbox
+                checked={formData.isAvailable}
+                onChange={(e) => handleFieldChange(e as any, 'isAvailable')}
+                disabled={isLoading}
+              />
               <span>{t('books.available')}</span>
             </Label>
             <Label className="flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox {...register('isPublished')} disabled={isLoading} />
+              <Checkbox
+                checked={formData.isPublished}
+                onChange={(e) => handleFieldChange(e as any, 'isPublished')}
+                disabled={isLoading}
+              />
               <span>Published</span>
             </Label>
           </div>

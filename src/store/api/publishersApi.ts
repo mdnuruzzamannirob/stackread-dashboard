@@ -141,7 +141,7 @@ export const publishersApi = baseApi.injectEndpoints({
     >({
       query: ({ id, body }) => ({
         url: `/publishers/${id}`,
-        method: 'PUT',
+        method: 'PATCH',
         body,
       }),
       transformResponse: (response: ApiEnvelope<BackendPublisher>) =>

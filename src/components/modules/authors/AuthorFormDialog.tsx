@@ -11,11 +11,9 @@ import {
   useCreateAuthorMutation,
   useUpdateAuthorMutation,
 } from '@/store/api/authorsApi'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -76,16 +74,8 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
   const [createAuthor] = useCreateAuthorMutation()
   const [updateAuthor] = useUpdateAuthorMutation()
   const [isLoading, setIsLoading] = useState(false)
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<AuthorFormData>({
-    resolver: zodResolver(authorSchema),
-    mode: 'onBlur',
-    defaultValues: author
+  const [formData, setFormData] = useState<AuthorFormData>(
+    author
       ? {
           name: author.name,
           bio: author.bio || '',
@@ -104,11 +94,39 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
           website: '',
           isActive: true,
         },
-  })
+  )
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const onSubmit = async (data: AuthorFormData) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    fieldName: string,
+  ) => {
+    const value =
+      e.target.type === 'checkbox'
+        ? (e.target as HTMLInputElement).checked
+        : e.target.value
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setFieldErrors({})
+
+    const validation = authorSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
+
     setIsLoading(true)
     try {
+      const data = validation.data
       const avatarProvided = data.avatarPublicId || data.avatarUrl
 
       if (avatarProvided && !(data.avatarPublicId && data.avatarUrl)) {
@@ -145,7 +163,15 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
           ? t('common.updatedSuccessfully')
           : t('common.createdSuccessfully'),
       )
-      reset()
+      setFormData({
+        name: '',
+        bio: '',
+        countryCode: '',
+        avatarPublicId: '',
+        avatarUrl: '',
+        website: '',
+        isActive: true,
+      })
       onClose()
     } catch (error) {
       const errorMessage =
@@ -173,7 +199,7 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
         </div>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={onSubmit}
           className="flex-1 overflow-y-auto p-6 space-y-6"
         >
           <div>
@@ -182,42 +208,49 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register('name')}
+              value={formData.name}
+              onChange={(e) => handleFieldChange(e, 'name')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.name)}
+              aria-invalid={Boolean(fieldErrors.name)}
               placeholder="Enter author name (2-150 characters)"
             />
-            <FieldError message={errors.name?.message} />
+            <FieldError message={fieldErrors.name} />
           </div>
 
           <div>
             <Label className="mb-2 block">{t('authors.bio')}</Label>
             <Textarea
-              {...register('bio')}
+              value={formData.bio}
+              onChange={(e) => handleFieldChange(e, 'bio')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.bio)}
+              aria-invalid={Boolean(fieldErrors.bio)}
               rows={4}
               placeholder="Author biography (3-3000 characters)"
             />
-            <FieldError message={errors.bio?.message} />
+            <FieldError message={fieldErrors.bio} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="mb-2 block">Country</Label>
               <Input
-                {...register('countryCode')}
+                value={formData.countryCode}
+                onChange={(e) => handleFieldChange(e, 'countryCode')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.countryCode)}
+                aria-invalid={Boolean(fieldErrors.countryCode)}
                 placeholder="BD or USA"
               />
-              <FieldError message={errors.countryCode?.message} />
+              <FieldError message={fieldErrors.countryCode} />
             </div>
 
             <div>
               <Label className="mb-2 block">Status</Label>
               <Label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-                <Checkbox {...register('isActive')} disabled={isLoading} />
+                <Checkbox
+                  checked={formData.isActive}
+                  onChange={(e) => handleFieldChange(e as any, 'isActive')}
+                  disabled={isLoading}
+                />
                 <span>Active</span>
               </Label>
             </div>
@@ -227,24 +260,26 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
             <div>
               <Label className="mb-2 block">Avatar Public ID</Label>
               <Input
-                {...register('avatarPublicId')}
+                value={formData.avatarPublicId}
+                onChange={(e) => handleFieldChange(e, 'avatarPublicId')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.avatarPublicId)}
+                aria-invalid={Boolean(fieldErrors.avatarPublicId)}
                 placeholder="authors/avatar-public-id"
               />
-              <FieldError message={errors.avatarPublicId?.message} />
+              <FieldError message={fieldErrors.avatarPublicId} />
             </div>
 
             <div>
               <Label className="mb-2 block">Avatar URL</Label>
               <Input
                 type="url"
-                {...register('avatarUrl')}
+                value={formData.avatarUrl}
+                onChange={(e) => handleFieldChange(e, 'avatarUrl')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.avatarUrl)}
+                aria-invalid={Boolean(fieldErrors.avatarUrl)}
                 placeholder="https://example.com/avatar.png"
               />
-              <FieldError message={errors.avatarUrl?.message} />
+              <FieldError message={fieldErrors.avatarUrl} />
             </div>
           </div>
 
@@ -252,12 +287,13 @@ export function AuthorFormDialog({ author, onClose }: AuthorFormDialogProps) {
             <Label className="mb-2 block">Website</Label>
             <Input
               type="url"
-              {...register('website')}
+              value={formData.website}
+              onChange={(e) => handleFieldChange(e, 'website')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.website)}
+              aria-invalid={Boolean(fieldErrors.website)}
               placeholder="https://authorwebsite.com"
             />
-            <FieldError message={errors.website?.message} />
+            <FieldError message={fieldErrors.website} />
           </div>
 
           <div className="flex gap-2 pt-6 border-t border-border">

@@ -1,12 +1,10 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -39,28 +37,37 @@ export function ForgotPasswordForm() {
   const locale = useLocale()
   const router = useRouter()
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [formData, setFormData] = useState<ForgotPasswordSchema>({
+    email: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [forgotPassword, { isLoading }] = useForgotStaffPasswordMutation()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ForgotPasswordSchema>({
-    resolver: zodResolver(forgotPasswordSchema),
-    defaultValues: {
-      email: '',
-    },
-  })
-
-  const onSubmit = async (values: ForgotPasswordSchema) => {
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setSubmitError(null)
+    setFieldErrors({})
+
+    // Validate using schema
+    const validation = forgotPasswordSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]
+        if (typeof path === 'string') {
+          errors[path] = issue.message
+        }
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
-      await forgotPassword(values.email).unwrap()
+      await forgotPassword(formData.email).unwrap()
       toast.success(t('resetCodeSent'))
       router.push(
-        `/${locale}/verify-reset-otp?email=${encodeURIComponent(values.email)}`,
+        `/${locale}/verify-reset-otp?email=${encodeURIComponent(formData.email)}`,
       )
     } catch (error) {
       const message = getErrorMessage(error, t('forgotPasswordFailed'))
@@ -84,7 +91,7 @@ export function ForgotPasswordForm() {
           {t('forgotPasswordDesc')}
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <label htmlFor="email" className="text-sm font-medium">
               {t('email')}
@@ -95,11 +102,21 @@ export function ForgotPasswordForm() {
               autoComplete="email"
               placeholder={t('emailPlaceholder')}
               className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-              {...register('email')}
+              value={formData.email}
+              onChange={(e) => {
+                setFormData({ ...formData, email: e.target.value })
+                if (fieldErrors.email) {
+                  setFieldErrors((prev) => {
+                    const updated = { ...prev }
+                    delete updated.email
+                    return updated
+                  })
+                }
+              }}
             />
-            {errors.email?.message ? (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
-            ) : null}
+            {fieldErrors.email && (
+              <p className="text-sm text-destructive">{fieldErrors.email}</p>
+            )}
           </div>
 
           {submitError ? (

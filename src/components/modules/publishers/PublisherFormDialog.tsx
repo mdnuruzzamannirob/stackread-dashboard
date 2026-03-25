@@ -11,11 +11,9 @@ import {
   useCreatePublisherMutation,
   useUpdatePublisherMutation,
 } from '@/store/api/publishersApi'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, X } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -96,15 +94,8 @@ export function PublisherFormDialog({
   const [updatePublisher] = useUpdatePublisherMutation()
   const [isLoading, setIsLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm<PublisherFormData, undefined, PublisherFormValues>({
-    resolver: zodResolver(publisherSchema),
-    mode: 'onBlur',
-    defaultValues: publisher
+  const [formData, setFormData] = useState<PublisherFormData>(
+    publisher
       ? {
           name: publisher.name,
           slug: publisher.slug,
@@ -127,11 +118,44 @@ export function PublisherFormDialog({
           foundedYear: undefined,
           isActive: true,
         },
-  })
+  )
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const onSubmit = async (data: PublisherFormData) => {
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    fieldName: string,
+  ) => {
+    const target = e.target as any
+    const value =
+      target.type === 'checkbox'
+        ? target.checked
+        : fieldName === 'foundedYear' && target.value
+          ? parseInt(target.value, 10)
+          : fieldName === 'foundedYear'
+            ? undefined
+            : target.value
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setFieldErrors({})
+
+    const validation = publisherSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
+
     setIsLoading(true)
     try {
+      const data = validation.data
       const logoProvided = data.logoPublicId || data.logoUrl
 
       if (logoProvided && !(data.logoPublicId && data.logoUrl)) {
@@ -170,7 +194,17 @@ export function PublisherFormDialog({
           ? t('common.updatedSuccessfully')
           : t('common.createdSuccessfully'),
       )
-      reset()
+      setFormData({
+        name: '',
+        slug: '',
+        description: '',
+        website: '',
+        logoPublicId: '',
+        logoUrl: '',
+        country: '',
+        foundedYear: undefined,
+        isActive: true,
+      })
       onClose()
     } catch (error) {
       const errorMessage =
@@ -200,7 +234,7 @@ export function PublisherFormDialog({
         </div>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={onSubmit}
           className="flex-1 overflow-y-auto p-6 space-y-6"
         >
           <div>
@@ -209,12 +243,13 @@ export function PublisherFormDialog({
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register('name')}
+              value={formData.name}
+              onChange={(e) => handleFieldChange(e, 'name')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.name)}
+              aria-invalid={Boolean(fieldErrors.name)}
               placeholder="Publisher name (2-200 characters)"
             />
-            <FieldError message={errors.name?.message} />
+            <FieldError message={fieldErrors.name} />
           </div>
 
           <div>
@@ -223,48 +258,52 @@ export function PublisherFormDialog({
               <span className="text-red-500">*</span>
             </Label>
             <Input
-              {...register('slug')}
+              value={formData.slug}
+              onChange={(e) => handleFieldChange(e, 'slug')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.slug)}
+              aria-invalid={Boolean(fieldErrors.slug)}
               placeholder="publisher-slug"
             />
-            <FieldError message={errors.slug?.message} />
+            <FieldError message={fieldErrors.slug} />
           </div>
 
           <div>
             <Label className="mb-2 block">{t('publishers.description')}</Label>
             <Textarea
-              {...register('description')}
+              value={formData.description}
+              onChange={(e) => handleFieldChange(e, 'description')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.description)}
+              aria-invalid={Boolean(fieldErrors.description)}
               rows={3}
               placeholder="Publisher description (3-2000 characters)"
             />
-            <FieldError message={errors.description?.message} />
+            <FieldError message={fieldErrors.description} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label className="mb-2 block">Country</Label>
               <Input
-                {...register('country')}
+                value={formData.country}
+                onChange={(e) => handleFieldChange(e, 'country')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.country)}
+                aria-invalid={Boolean(fieldErrors.country)}
                 placeholder="Bangladesh"
               />
-              <FieldError message={errors.country?.message} />
+              <FieldError message={fieldErrors.country} />
             </div>
 
             <div>
               <Label className="mb-2 block">Founded Year</Label>
               <Input
                 type="number"
-                {...register('foundedYear', { valueAsNumber: true })}
+                value={formData.foundedYear || ''}
+                onChange={(e) => handleFieldChange(e, 'foundedYear')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.foundedYear)}
+                aria-invalid={Boolean(fieldErrors.foundedYear)}
                 placeholder="2020"
               />
-              <FieldError message={errors.foundedYear?.message} />
+              <FieldError message={fieldErrors.foundedYear} />
             </div>
           </div>
 
@@ -272,42 +311,49 @@ export function PublisherFormDialog({
             <Label className="mb-2 block">Website</Label>
             <Input
               type="url"
-              {...register('website')}
+              value={formData.website}
+              onChange={(e) => handleFieldChange(e, 'website')}
               disabled={isLoading}
-              aria-invalid={Boolean(errors.website)}
+              aria-invalid={Boolean(fieldErrors.website)}
               placeholder="https://publisherwebsite.com"
             />
-            <FieldError message={errors.website?.message} />
+            <FieldError message={fieldErrors.website} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <Label className="mb-2 block">Logo Public ID</Label>
               <Input
-                {...register('logoPublicId')}
+                value={formData.logoPublicId}
+                onChange={(e) => handleFieldChange(e, 'logoPublicId')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.logoPublicId)}
+                aria-invalid={Boolean(fieldErrors.logoPublicId)}
                 placeholder="publishers/logo-public-id"
               />
-              <FieldError message={errors.logoPublicId?.message} />
+              <FieldError message={fieldErrors.logoPublicId} />
             </div>
 
             <div>
               <Label className="mb-2 block">Logo URL</Label>
               <Input
                 type="url"
-                {...register('logoUrl')}
+                value={formData.logoUrl}
+                onChange={(e) => handleFieldChange(e, 'logoUrl')}
                 disabled={isLoading}
-                aria-invalid={Boolean(errors.logoUrl)}
+                aria-invalid={Boolean(fieldErrors.logoUrl)}
                 placeholder="https://example.com/logo.png"
               />
-              <FieldError message={errors.logoUrl?.message} />
+              <FieldError message={fieldErrors.logoUrl} />
             </div>
           </div>
 
           <div>
             <Label className="inline-flex items-center gap-2 text-sm cursor-pointer">
-              <Checkbox {...register('isActive')} disabled={isLoading} />
+              <Checkbox
+                checked={formData.isActive}
+                onChange={(e) => handleFieldChange(e as any, 'isActive')}
+                disabled={isLoading}
+              />
               <span className="text-sm font-medium">Active</span>
             </Label>
           </div>

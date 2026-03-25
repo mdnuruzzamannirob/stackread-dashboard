@@ -35,6 +35,11 @@ export const rbacApi = baseApi.injectEndpoints({
       transformResponse: (response: ApiEnvelope<RbacRole[]>) => response.data,
       providesTags: [{ type: 'Rbac', id: 'ROLES' }],
     }),
+    getRbacRoleById: builder.query<RbacRole, string>({
+      query: (id) => `/admin/roles/${id}`,
+      transformResponse: (response: ApiEnvelope<RbacRole>) => response.data,
+      providesTags: (result, error, id) => [{ type: 'Rbac', id }],
+    }),
     createRbacRole: builder.mutation<
       RbacRole,
       { name: string; description: string; permissions: string[] }
@@ -80,6 +85,7 @@ export const rbacApi = baseApi.injectEndpoints({
 export const {
   useGetRbacPermissionsQuery,
   useGetRbacRolesQuery,
+  useGetRbacRoleByIdQuery,
   useCreateRbacRoleMutation,
   useUpdateRbacRoleMutation,
   useDeleteRbacRoleMutation,

@@ -1,13 +1,11 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import { useLocale, useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -45,29 +43,44 @@ export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [formData, setFormData] = useState<ResetPasswordSchema>({
+    resetToken,
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [resetPassword, { isLoading }] = useResetStaffPasswordMutation()
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<ResetPasswordSchema>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: {
-      resetToken,
-      newPassword: '',
-      confirmPassword: '',
-    },
-  })
+  const handleFieldChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    fieldName: string,
+  ) => {
+    const value = e.target.value
+    setFormData((prev) => ({ ...prev, [fieldName]: value }))
+    setFieldErrors((prev) => ({ ...prev, [fieldName]: '' }))
+  }
 
-  const onSubmit = async (values: ResetPasswordSchema) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setSubmitError(null)
+    setFieldErrors({})
+
+    const validation = resetPasswordSchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
       await resetPassword({
-        resetToken: values.resetToken,
-        newPassword: values.newPassword,
+        resetToken: validation.data.resetToken,
+        newPassword: validation.data.newPassword,
       }).unwrap()
       toast.success(t('resetPasswordSuccess'))
       router.push(`/${locale}/login`)
@@ -93,8 +106,12 @@ export function ResetPasswordForm() {
           {t('resetPasswordDesc')}
         </p>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-4">
-          <input type="hidden" {...register('resetToken')} />
+        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+          <input
+            type="hidden"
+            value={formData.resetToken}
+            onChange={() => {}}
+          />
 
           <div className="space-y-1.5">
             <label htmlFor="newPassword" className="text-sm font-medium">
@@ -106,8 +123,9 @@ export function ResetPasswordForm() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 placeholder={t('passwordPlaceholder')}
+                value={formData.newPassword}
+                onChange={(e) => handleFieldChange(e, 'newPassword')}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-                {...register('newPassword')}
               />
               <button
                 type="button"
@@ -124,9 +142,9 @@ export function ResetPasswordForm() {
                 )}
               </button>
             </div>
-            {errors.newPassword?.message ? (
+            {fieldErrors.newPassword ? (
               <p className="text-sm text-destructive">
-                {errors.newPassword.message}
+                {fieldErrors.newPassword}
               </p>
             ) : null}
           </div>
@@ -141,8 +159,9 @@ export function ResetPasswordForm() {
                 type={showConfirmPassword ? 'text' : 'password'}
                 autoComplete="new-password"
                 placeholder={t('passwordPlaceholder')}
+                value={formData.confirmPassword}
+                onChange={(e) => handleFieldChange(e, 'confirmPassword')}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/40"
-                {...register('confirmPassword')}
               />
               <button
                 type="button"
@@ -159,9 +178,9 @@ export function ResetPasswordForm() {
                 )}
               </button>
             </div>
-            {errors.confirmPassword?.message ? (
+            {fieldErrors.confirmPassword ? (
               <p className="text-sm text-destructive">
-                {errors.confirmPassword.message}
+                {fieldErrors.confirmPassword}
               </p>
             ) : null}
           </div>

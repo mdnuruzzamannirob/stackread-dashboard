@@ -1,13 +1,11 @@
 'use client'
 
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { useLocale, useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import QRCode from 'qrcode'
 import { useEffect, useMemo, useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
 
 import { OTPInput } from '@/components/common/OTPInput'
 import { Button } from '@/components/ui/button'
@@ -56,21 +54,14 @@ export function TwoFactorSetupFlow() {
   const [qrCodeImage, setQrCodeImage] = useState('')
   const [copySuccess, setCopySuccess] = useState(false)
   const [setupError, setSetupError] = useState<string | null>(null)
+  const [formData, setFormData] = useState<Enable2FASchema>({
+    otp: '',
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [setup2FA, { isLoading: isSetupLoading }] = useSetup2FAMutation()
   const [enable2FA, { isLoading: isEnableLoading }] = useEnable2FAMutation()
   const [getStaffMe] = useLazyGetStaffMeQuery()
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<Enable2FASchema>({
-    resolver: zodResolver(enable2FASchema),
-    defaultValues: {
-      otp: '',
-    },
-  })
 
   useEffect(() => {
     if (!tempToken) {
@@ -114,18 +105,31 @@ export function TwoFactorSetupFlow() {
     [qrCodeImage, secret],
   )
 
-  const onEnable = async (values: Enable2FASchema) => {
+  const onEnable = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     if (!tempToken) {
       router.replace(`/${locale}/login`)
       return
     }
 
     setSetupError(null)
+    setFieldErrors({})
+
+    const validation = enable2FASchema.safeParse(formData)
+    if (!validation.success) {
+      const errors: Record<string, string> = {}
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0]?.toString() || 'general'
+        errors[path] = issue.message
+      })
+      setFieldErrors(errors)
+      return
+    }
 
     try {
       const response = await enable2FA({
         tempToken,
-        otp: values.otp,
+        otp: validation.data.otp,
       }).unwrap()
 
       setSessionTokenCookie(response.token)
@@ -222,24 +226,21 @@ export function TwoFactorSetupFlow() {
             ) : null}
           </div>
         ) : (
-          <form onSubmit={handleSubmit(onEnable)} className="mt-6 space-y-4">
+          <form onSubmit={onEnable} className="mt-6 space-y-4">
             <p className="text-sm text-muted-foreground">{t('enterOTP')}</p>
-            <Controller
-              control={control}
-              name="otp"
-              render={({ field }) => (
-                <OTPInput
-                  id="otp"
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder={t('otpPlaceholder')}
-                  disabled={isEnableLoading}
-                />
-              )}
+            <OTPInput
+              id="otp"
+              value={formData.otp}
+              onChange={(value) => {
+                setFormData({ otp: value })
+                setFieldErrors({})
+              }}
+              placeholder={t('otpPlaceholder')}
+              disabled={isEnableLoading}
             />
 
-            {errors.otp?.message ? (
-              <p className="text-sm text-destructive">{errors.otp.message}</p>
+            {fieldErrors.otp ? (
+              <p className="text-sm text-destructive">{fieldErrors.otp}</p>
             ) : null}
             {setupError ? (
               <p className="text-sm text-destructive">{setupError}</p>

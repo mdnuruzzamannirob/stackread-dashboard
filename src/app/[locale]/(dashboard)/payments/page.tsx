@@ -1,14 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { PaymentsList } from '@/components/modules/payments/PaymentsList'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function PaymentsPage() {
-  const t = useTranslations()
   return (
-    <PageHeader
-      title={t('navigation.payments')}
-      description={t('pages.paymentsDescription')}
-    />
+    <PermissionGuard requiredPermission={PERMISSIONS.PAYMENTS_VIEW}>
+      <PaymentsList />
+    </PermissionGuard>
   )
 }
