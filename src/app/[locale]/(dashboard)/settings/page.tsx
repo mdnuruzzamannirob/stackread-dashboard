@@ -8,7 +8,7 @@ export default function SettingsPage() {
   return (
     <PageHeader
       title={t('navigation.settings')}
-      description="Application settings"
+      description={t('pages.settingsDescription')}
     />
   )
 }

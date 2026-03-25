@@ -8,7 +8,7 @@ export default function ProfilePage() {
   return (
     <PageHeader
       title={t('navigation.profile')}
-      description="Your profile information"
+      description={t('pages.profileDescription')}
     />
   )
 }

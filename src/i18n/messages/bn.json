@@ -132,6 +132,35 @@
         "revenue": "মোট রাজস্ব",
         "revenueTrend": "রাজস্ব প্রবণতা"
     },
+    "sidebar": {
+        "sections": {
+            "overview": "ওভারভিউ",
+            "content": "কনটেন্ট",
+            "members": "সদস্য",
+            "finance": "ফাইন্যান্স",
+            "operations": "অপারেশন",
+            "system": "সিস্টেম"
+        }
+    },
+    "topbar": {
+        "auditLogs": "অডিট লগ",
+        "searchPlaceholder": "খুঁজুন...",
+        "searchDialogPlaceholder": "বই, সদস্য, রিপোর্ট খুঁজুন...",
+        "toggleTheme": "থিম পরিবর্তন",
+        "toggleLanguage": "ভাষা পরিবর্তন",
+        "adminUser": "অ্যাডমিন ইউজার",
+        "superAdmin": "সুপার অ্যাডমিন"
+    },
+    "pages": {
+        "membersDescription": "সদস্য ব্যবস্থাপনা",
+        "paymentsDescription": "পেমেন্ট ব্যবস্থাপনা",
+        "subscriptionsDescription": "সদস্যপদ ব্যবস্থাপনা",
+        "promotionsDescription": "প্রচার ব্যবস্থাপনা",
+        "reportsDescription": "রিপোর্ট ও বিশ্লেষণ",
+        "auditDescription": "অডিট লগ ও কার্যকলাপ",
+        "settingsDescription": "অ্যাপ্লিকেশন সেটিংস",
+        "profileDescription": "আপনার প্রোফাইল তথ্য"
+    },
     "activities": {
         "created": "তৈরি করা হয়েছে",
         "updated": "আপডেট করা হয়েছে",

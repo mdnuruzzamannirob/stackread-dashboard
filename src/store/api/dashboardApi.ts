@@ -14,10 +14,12 @@ export interface DashboardStats {
   totalMembers: number
   totalBooks: number
   activeLoans: number
+  activeSubscriptions: number
   totalRevenue: number
   memberGrowth: number
   bookAdditions: number
   loanTrend: number
+  subscriptionGrowth: number
   revenueGrowth: number
 }
 
@@ -40,6 +42,10 @@ export interface AdminOverviewResponse {
   stats: DashboardStats
   revenueTrend: RevenueTrendPoint[]
   activityLog: ActivityLogItem[]
+  popularBooks: Array<{
+    title: string
+    borrowCount: number
+  }>
 }
 
 interface BackendAdminOverviewResponse {
@@ -100,14 +106,22 @@ export const dashboardApi = baseApi.injectEndpoints({
             (response.data.borrowStats?.borrowed ?? 0) +
               (response.data.borrowStats?.overdue ?? 0),
           ),
+          activeSubscriptions: Number(
+            response.data.totals?.activeSubscriptions ?? 0,
+          ),
           totalRevenue: Number(response.data.totals?.revenue ?? 0),
           memberGrowth: 0,
           bookAdditions: 0,
           loanTrend: 0,
+          subscriptionGrowth: 0,
           revenueGrowth: 0,
         },
         revenueTrend: [],
         activityLog: [],
+        popularBooks: (response.data.popularBooks ?? []).map((book) => ({
+          title: book.title,
+          borrowCount: Number(book.borrowCount ?? 0),
+        })),
       }),
       providesTags: [{ type: 'Dashboard', id: 'OVERVIEW' }],
     }),

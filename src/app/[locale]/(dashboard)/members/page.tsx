@@ -8,7 +8,7 @@ export default function MembersPage() {
   return (
     <PageHeader
       title={t('navigation.members')}
-      description="Members management"
+      description={t('pages.membersDescription')}
     />
   )
 }

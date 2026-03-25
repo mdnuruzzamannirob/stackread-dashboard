@@ -8,7 +8,7 @@ export default function ReportsPage() {
   return (
     <PageHeader
       title={t('navigation.reports')}
-      description="Reports and analytics"
+      description={t('pages.reportsDescription')}
     />
   )
 }

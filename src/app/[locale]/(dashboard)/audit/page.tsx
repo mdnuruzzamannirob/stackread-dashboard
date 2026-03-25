@@ -8,7 +8,7 @@ export default function AuditPage() {
   return (
     <PageHeader
       title={t('navigation.audit')}
-      description="Audit logs and activity"
+      description={t('pages.auditDescription')}
     />
   )
 }

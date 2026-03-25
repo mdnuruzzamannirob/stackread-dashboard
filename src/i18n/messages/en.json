@@ -132,6 +132,35 @@
         "revenue": "Total Revenue",
         "revenueTrend": "Revenue Trend"
     },
+    "sidebar": {
+        "sections": {
+            "overview": "Overview",
+            "content": "Content",
+            "members": "Members",
+            "finance": "Finance",
+            "operations": "Operations",
+            "system": "System"
+        }
+    },
+    "topbar": {
+        "auditLogs": "Audit Logs",
+        "searchPlaceholder": "Search...",
+        "searchDialogPlaceholder": "Search books, members, reports...",
+        "toggleTheme": "Toggle theme",
+        "toggleLanguage": "Toggle language",
+        "adminUser": "Admin User",
+        "superAdmin": "Super Admin"
+    },
+    "pages": {
+        "membersDescription": "Members management",
+        "paymentsDescription": "Payments management",
+        "subscriptionsDescription": "Subscriptions management",
+        "promotionsDescription": "Promotions management",
+        "reportsDescription": "Reports and analytics",
+        "auditDescription": "Audit logs and activity",
+        "settingsDescription": "Application settings",
+        "profileDescription": "Your profile information"
+    },
     "activities": {
         "created": "created",
         "updated": "updated",

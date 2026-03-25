@@ -8,7 +8,7 @@ export default function SubscriptionsPage() {
   return (
     <PageHeader
       title={t('navigation.subscriptions')}
-      description="Subscriptions management"
+      description={t('pages.subscriptionsDescription')}
     />
   )
 }

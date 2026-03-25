@@ -8,7 +8,7 @@ export default function PaymentsPage() {
   return (
     <PageHeader
       title={t('navigation.payments')}
-      description="Payments management"
+      description={t('pages.paymentsDescription')}
     />
   )
 }

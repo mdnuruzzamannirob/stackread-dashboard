@@ -8,7 +8,7 @@ export default function PromotionsPage() {
   return (
     <PageHeader
       title={t('navigation.promotions')}
-      description="Promotions management"
+      description={t('pages.promotionsDescription')}
     />
   )
 }
