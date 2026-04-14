@@ -31,15 +31,17 @@
         "publishers": "প্রকাশক",
         "borrows": "ধার",
         "reservations": "সংরক্ষণ",
+        "plans": "পরিকল্পনাগুলি",
         "payments": "পেমেন্ট",
         "subscriptions": "সদস্যপদ",
         "promotions": "প্রচার",
         "reports": "রিপোর্ট",
         "settings": "সেটিংস",
         "audit": "অডিট",
+        "notifications": "বিজ্ঞপ্তি",
+        "reviews": "পর্যালোচনাগুলি",
         "logout": "লগ আউট",
-        "profile": "প্রোফাইল",
-        "notifications": "বিজ্ঞপ্তি"
+        "profile": "প্রোফাইল"
     },
     "auth": {
         "login": "লগইন",
@@ -136,6 +138,7 @@
         "sections": {
             "overview": "ওভারভিউ",
             "content": "কনটেন্ট",
+            "communications": "যোগাযোগ",
             "members": "সদস্য",
             "finance": "ফাইন্যান্স",
             "operations": "অপারেশন",
@@ -230,6 +233,30 @@
         "foundedYear": "প্রতিষ্ঠিত বছর",
         "active": "সক্রিয়"
     },
+    "plans": {
+        "title": "প্ল্যান ব্যবস্থাপনা",
+        "description": "সদস্যপদের প্ল্যান এবং মূল্য নির্ধারণ কনফিগার করুন",
+        "noPlans": "কোন প্ল্যান পাওয়া যায়নি",
+        "includeInactive": "নিষ্ক্রিয় প্ল্যান অন্তর্ভুক্ত করুন",
+        "code": "কোড",
+        "name": "নাম",
+        "details": "বর্ণনা",
+        "price": "মূল্য",
+        "currency": "মুদ্রা",
+        "durationDays": "মেয়াদ (দিন)",
+        "maxDevices": "সর্বোচ্চ ডিভাইস",
+        "accessLevel": "অ্যাক্সেস স্তর",
+        "sortOrder": "সাজানোর ক্রম",
+        "features": "ফিচারসমূহ",
+        "downloadEnabled": "ডাউনলোড সক্রিয়",
+        "isFree": "ফ্রি প্ল্যান",
+        "isActive": "সক্রিয়",
+        "createPlan": "প্ল্যান তৈরি করুন",
+        "editPlan": "প্ল্যান সম্পাদনা করুন",
+        "updatePlan": "প্ল্যান আপডেট করুন",
+        "active": "সক্রিয়",
+        "inactive": "নিষ্ক্রিয়"
+    },
     "subscriptions": {
         "title": "সদস্যপদ ব্যবস্থাপনা",
         "description": "সদস্য সদস্যপদ পরিচালনা করুন",
@@ -295,6 +322,29 @@
         "addSale": "নতুন ফ্ল্যাশ সেল যোগ করুন",
         "editSale": "ফ্ল্যাশ সেল সম্পাদনা করুন",
         "deleteSale": "ফ্ল্যাশ সেল মুছুন"
+    },
+    "reviews": {
+        "title": "পর্যালোচনা মডারেশন",
+        "description": "বই পর্যালোচনা পরিচালনা এবং সংশোধন করুন",
+        "noReviews": "কোন পর্যালোচনা পাওয়া যায়নি",
+        "rating": "রেটিং",
+        "book": "বই",
+        "user": "ব্যবহারকারী",
+        "visible": "দৃশ্যমান",
+        "comment": "মন্তব্য",
+        "createDate": "তৈরি করা হয়েছে",
+        "toggleVisibility": "দৃশ্যমানতা পরিবর্তন করুন"
+    },
+    "notifications": {
+        "title": "বিজ্ঞপ্তি পাঠান",
+        "description": "ব্যবহারকারীদের কাছে বাল্ক বিজ্ঞপ্তি পাঠান",
+        "bulkSend": "বাল্ক পাঠান",
+        "userIds": "ব্যবহারকারী আইডি",
+        "type": "ধরন",
+        "body": "বার্তা",
+        "relatedEntity": "সম্পর্কিত সত্তা",
+        "notificationsSent": "বিজ্ঞপ্তি পাঠানো হয়েছে",
+        "recentSends": "সম্প্রতি পাঠানো"
     },
     "errors": {
         "forbidden": "আপনার এই পৃষ্ঠায় অ্যাক্সেস করার অনুমতি নেই",

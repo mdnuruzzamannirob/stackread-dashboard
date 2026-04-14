@@ -31,15 +31,17 @@
         "publishers": "Publishers",
         "borrows": "Borrows",
         "reservations": "Reservations",
+        "plans": "Plans",
         "payments": "Payments",
         "subscriptions": "Subscriptions",
         "promotions": "Promotions",
         "reports": "Reports",
         "settings": "Settings",
         "audit": "Audit",
+        "notifications": "Notifications",
+        "reviews": "Reviews",
         "logout": "Logout",
-        "profile": "Profile",
-        "notifications": "Notifications"
+        "profile": "Profile"
     },
     "auth": {
         "login": "Login",
@@ -136,6 +138,7 @@
         "sections": {
             "overview": "Overview",
             "content": "Content",
+            "communications": "Communications",
             "members": "Members",
             "finance": "Finance",
             "operations": "Operations",
@@ -230,6 +233,30 @@
         "foundedYear": "Founded Year",
         "active": "Active"
     },
+    "plans": {
+        "title": "Plans Management",
+        "description": "Configure subscription plans and pricing",
+        "noPlans": "No plans found",
+        "includeInactive": "Include inactive plans",
+        "code": "Code",
+        "name": "Name",
+        "details": "Description",
+        "price": "Price",
+        "currency": "Currency",
+        "durationDays": "Duration Days",
+        "maxDevices": "Max Devices",
+        "accessLevel": "Access Level",
+        "sortOrder": "Sort Order",
+        "features": "Features",
+        "downloadEnabled": "Download enabled",
+        "isFree": "Free plan",
+        "isActive": "Active",
+        "createPlan": "Create Plan",
+        "editPlan": "Edit Plan",
+        "updatePlan": "Update Plan",
+        "active": "Active",
+        "inactive": "Inactive"
+    },
     "subscriptions": {
         "title": "Subscriptions Management",
         "description": "Manage member subscriptions",
@@ -295,6 +322,29 @@
         "addSale": "Add New Flash Sale",
         "editSale": "Edit Flash Sale",
         "deleteSale": "Delete Flash Sale"
+    },
+    "reviews": {
+        "title": "Reviews Moderation",
+        "description": "Manage and moderate book reviews",
+        "noReviews": "No reviews found",
+        "rating": "Rating",
+        "book": "Book",
+        "user": "User",
+        "visible": "Visible",
+        "comment": "Comment",
+        "createDate": "Created At",
+        "toggleVisibility": "Toggle Visibility"
+    },
+    "notifications": {
+        "title": "Send Notifications",
+        "description": "Send bulk notifications to users",
+        "bulkSend": "Bulk Send",
+        "userIds": "User IDs",
+        "type": "Type",
+        "body": "Message",
+        "relatedEntity": "Related Entity",
+        "notificationsSent": "Notifications sent",
+        "recentSends": "Recent Sends"
     },
     "errors": {
         "forbidden": "You do not have permission to access this page",

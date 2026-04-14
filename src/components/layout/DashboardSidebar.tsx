@@ -5,6 +5,7 @@ import { hasPermission, PERMISSIONS } from '@/lib/auth/permissions'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { toggleSidebar } from '@/store/slice/uiSlice'
 import {
+  Bell,
   BookOpen,
   BookOpenCheck,
   ChartBar,
@@ -15,6 +16,7 @@ import {
   Globe,
   LayoutDashboard,
   Menu,
+  MessageSquare,
   Settings,
   Shield,
   TicketPercent,
@@ -75,6 +77,23 @@ export function DashboardSidebar() {
           href: '/publishers',
           icon: Globe,
           requiredPermission: PERMISSIONS.PUBLISHERS_MANAGE,
+        },
+      ],
+    },
+    {
+      section: 'COMMUNICATIONS',
+      items: [
+        {
+          label: 'navigation.notifications',
+          href: '/notifications',
+          icon: Bell,
+          requiredPermission: PERMISSIONS.NOTIFICATIONS_MANAGE,
+        },
+        {
+          label: 'navigation.reviews',
+          href: '/reviews',
+          icon: MessageSquare,
+          requiredPermission: PERMISSIONS.REVIEWS_VIEW,
         },
       ],
     },
