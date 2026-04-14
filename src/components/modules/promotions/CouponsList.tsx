@@ -11,21 +11,30 @@ import {
   useToggleCouponMutation,
   useUpdateCouponMutation,
 } from '@/store/api/promotionsApi'
+import { PERMISSIONS, hasPermission } from '@/lib/auth/permissions'
+import { useAppSelector } from '@/store/hooks'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 type CouponFormState = {
   code: string
+  title: string
   discountType: 'percentage' | 'fixed'
   discountValue: number
-  maxUses: string
-  expiryDate: string
+  totalLimit: string
+  startsAt: string
+  endsAt: string
   description: string
 }
 
 export function CouponsList() {
   const t = useTranslations()
+  const permissions = useAppSelector((state) => state.auth.permissions)
+  const canManagePromotions = hasPermission(
+    permissions,
+    PERMISSIONS.PROMOTIONS_MANAGE,
+  )
   const [page, setPage] = useState(1)
   const [isActive, setIsActive] = useState<boolean | undefined>()
   const { data, isLoading, isError, refetch } = useListCouponsQuery({
@@ -43,10 +52,12 @@ export function CouponsList() {
   const [deletingCoupon, setDeletingCoupon] = useState<Coupon | null>(null)
   const [formState, setFormState] = useState<CouponFormState>({
     code: '',
+    title: '',
     discountType: 'percentage',
     discountValue: 0,
-    maxUses: '',
-    expiryDate: '',
+    totalLimit: '',
+    startsAt: '',
+    endsAt: '',
     description: '',
   })
 
@@ -54,10 +65,12 @@ export function CouponsList() {
     setEditingCoupon(null)
     setFormState({
       code: '',
+      title: '',
       discountType: 'percentage',
       discountValue: 0,
-      maxUses: '',
-      expiryDate: '',
+      totalLimit: '',
+      startsAt: '',
+      endsAt: '',
       description: '',
     })
     setShowDialog(true)
@@ -67,11 +80,15 @@ export function CouponsList() {
     setEditingCoupon(coupon)
     setFormState({
       code: coupon.code,
+      title: coupon.title,
       discountType: coupon.discountType,
       discountValue: coupon.discountValue,
-      maxUses: coupon.maxUses ? String(coupon.maxUses) : '',
-      expiryDate: coupon.expiryDate
-        ? new Date(coupon.expiryDate).toISOString().slice(0, 10)
+      totalLimit: coupon.totalLimit ? String(coupon.totalLimit) : '',
+      startsAt: coupon.startsAt
+        ? new Date(coupon.startsAt).toISOString().slice(0, 16)
+        : '',
+      endsAt: coupon.endsAt
+        ? new Date(coupon.endsAt).toISOString().slice(0, 16)
         : '',
       description: coupon.description || '',
     })
@@ -132,12 +149,17 @@ export function CouponsList() {
 
     const payload = {
       code: formState.code.trim(),
+      title: formState.title.trim() || formState.code.trim(),
       discountType: formState.discountType,
       discountValue: Number(formState.discountValue),
-      applicableFor: 'all' as const,
-      ...(formState.maxUses ? { maxUses: Number(formState.maxUses) } : {}),
-      ...(formState.expiryDate
-        ? { expiryDate: new Date(formState.expiryDate).toISOString() }
+      ...(formState.totalLimit
+        ? { totalLimit: Number(formState.totalLimit) }
+        : {}),
+      ...(formState.startsAt
+        ? { startsAt: new Date(formState.startsAt).toISOString() }
+        : {}),
+      ...(formState.endsAt
+        ? { endsAt: new Date(formState.endsAt).toISOString() }
         : {}),
       ...(formState.description.trim()
         ? { description: formState.description.trim() }
@@ -178,6 +200,11 @@ export function CouponsList() {
       ),
     },
     {
+      key: 'title',
+      label: 'Title',
+      sortable: true,
+    },
+    {
       key: 'discountType',
       label: t('coupons.discountType'),
       render: (value) => (value === 'percentage' ? '%' : 'Fixed'),
@@ -191,13 +218,13 @@ export function CouponsList() {
     {
       key: 'usedCount',
       label: t('coupons.used'),
-      render: (value, row) => `${value}/${row.maxUses || '∞'}`,
+      render: (value, row) => `${value}/${row.totalLimit || '∞'}`,
     },
     {
-      key: 'expiryDate',
-      label: t('coupons.expiryDate'),
+      key: 'endsAt',
+      label: 'Ends',
       render: (value) =>
-        value ? new Date(value as string).toLocaleDateString() : 'No expiry',
+        value ? new Date(value as string).toLocaleDateString() : 'No end date',
     },
     {
       key: 'isActive',
@@ -206,6 +233,7 @@ export function CouponsList() {
         value ? (
           <button
             type="button"
+            disabled={!canManagePromotions}
             onClick={() => handleToggle(row)}
             className="rounded bg-green-500/20 px-2 py-1 text-xs text-green-700 hover:bg-green-500/30 dark:text-green-400"
           >
@@ -214,6 +242,7 @@ export function CouponsList() {
         ) : (
           <button
             type="button"
+            disabled={!canManagePromotions}
             onClick={() => handleToggle(row)}
             className="rounded bg-gray-500/20 px-2 py-1 text-xs text-gray-700 hover:bg-gray-500/30 dark:text-gray-400"
           >
@@ -273,9 +302,9 @@ export function CouponsList() {
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading || isProcessing}
-        onAdd={handleAdd}
-        onEdit={handleEdit}
-        onDelete={setDeletingCoupon}
+        onAdd={canManagePromotions ? handleAdd : undefined}
+        onEdit={canManagePromotions ? handleEdit : undefined}
+        onDelete={canManagePromotions ? setDeletingCoupon : undefined}
         noDataMessage={t('coupons.noCoupons')}
         page={page}
         onPageChange={setPage}
@@ -297,6 +326,17 @@ export function CouponsList() {
                   value={formState.code}
                   onChange={(e) =>
                     setFormState((prev) => ({ ...prev, code: e.target.value }))
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Title</label>
+                <input
+                  value={formState.title}
+                  onChange={(e) =>
+                    setFormState((prev) => ({ ...prev, title: e.target.value }))
                   }
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 />
@@ -342,16 +382,16 @@ export function CouponsList() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="mb-1 block text-sm font-medium">
-                    Max Uses
+                    Total Limit
                   </label>
                   <input
                     type="number"
                     min="0"
-                    value={formState.maxUses}
+                    value={formState.totalLimit}
                     onChange={(e) =>
                       setFormState((prev) => ({
                         ...prev,
-                        maxUses: e.target.value,
+                        totalLimit: e.target.value,
                       }))
                     }
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -360,20 +400,37 @@ export function CouponsList() {
 
                 <div>
                   <label className="mb-1 block text-sm font-medium">
-                    Expiry Date
+                    Starts At
                   </label>
                   <input
-                    type="date"
-                    value={formState.expiryDate}
+                    type="datetime-local"
+                    value={formState.startsAt}
                     onChange={(e) =>
                       setFormState((prev) => ({
                         ...prev,
-                        expiryDate: e.target.value,
+                        startsAt: e.target.value,
                       }))
                     }
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Ends At
+                </label>
+                <input
+                  type="datetime-local"
+                  value={formState.endsAt}
+                  onChange={(e) =>
+                    setFormState((prev) => ({
+                      ...prev,
+                      endsAt: e.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
               </div>
 
               <div>
@@ -404,7 +461,7 @@ export function CouponsList() {
                 <button
                   type="submit"
                   className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:opacity-90"
-                  disabled={isProcessing}
+                  disabled={isProcessing || !canManagePromotions}
                 >
                   {editingCoupon ? 'Update Coupon' : 'Create Coupon'}
                 </button>

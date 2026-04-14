@@ -19,10 +19,14 @@ interface PaginationMeta {
 export interface Subscription {
   _id: string
   id: string
+  userId: string
   memberId: string
   planId: string
+  previousPlanId?: string
   planName: string
   status: 'active' | 'expired' | 'cancelled'
+  startedAt: string
+  endsAt: string
   startDate: string
   endDate: string
   autoRenew: boolean
@@ -50,12 +54,16 @@ export interface UpdateSubscriptionRequest {
 const mapSubscription = (sub: any): Subscription => ({
   _id: sub.id || sub._id,
   id: sub.id || sub._id,
-  memberId: sub.memberId,
+  userId: sub.userId || sub.memberId,
+  memberId: sub.userId || sub.memberId,
   planId: sub.planId,
-  planName: sub.planName,
+  previousPlanId: sub.previousPlanId,
+  planName: sub.planName || sub.planId,
   status: sub.status,
-  startDate: sub.startDate,
-  endDate: sub.endDate,
+  startedAt: sub.startedAt || sub.startDate,
+  endsAt: sub.endsAt || sub.endDate,
+  startDate: sub.startedAt || sub.startDate,
+  endDate: sub.endsAt || sub.endDate,
   autoRenew: Boolean(sub.autoRenew),
   cancellationReason: sub.cancellationReason,
   cancelledAt: sub.cancelledAt,
@@ -73,8 +81,10 @@ export const subscriptionsApi = baseApi.injectEndpoints({
       {
         page?: number
         limit?: number
+        search?: string
+        sortBy?: string
+        sortOrder?: 'asc' | 'desc'
         status?: string
-        memberId?: string
       }
     >({
       query: (params) => ({
@@ -82,8 +92,10 @@ export const subscriptionsApi = baseApi.injectEndpoints({
         params: {
           page: params.page || 1,
           limit: params.limit || 10,
+          ...(params.search && { search: params.search }),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          ...(params.sortOrder && { sortOrder: params.sortOrder }),
           ...(params.status && { status: params.status }),
-          ...(params.memberId && { memberId: params.memberId }),
         },
       }),
       transformResponse: (

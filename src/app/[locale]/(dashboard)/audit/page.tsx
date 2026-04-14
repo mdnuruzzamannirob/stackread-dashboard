@@ -1,14 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { AuditLogsTable } from '@/components/modules/audit/AuditLogsTable'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function AuditPage() {
-  const t = useTranslations()
   return (
-    <PageHeader
-      title={t('navigation.audit')}
-      description={t('pages.auditDescription')}
-    />
+    <PermissionGuard requiredPermission={PERMISSIONS.AUDIT_VIEW}>
+      <AuditLogsTable />
+    </PermissionGuard>
   )
 }

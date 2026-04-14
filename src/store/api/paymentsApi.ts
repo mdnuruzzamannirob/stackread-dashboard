@@ -19,12 +19,18 @@ interface PaginationMeta {
 export interface Payment {
   _id: string
   id: string
+  userId: string
   memberId: string
+  subscriptionId?: string
+  provider?: string
   amount: number
   currency: string
   status: 'pending' | 'completed' | 'failed' | 'refunded' | 'cancelled'
   gateway: 'paypal' | 'stripe' | 'sslcommerz'
   transactionId?: string
+  providerPaymentId?: string
+  gatewayTransactionId?: string
+  reference?: string
   orderId?: string
   planId?: string
   planName?: string
@@ -57,12 +63,21 @@ export interface RefundRequest {
 const mapPayment = (payment: any): Payment => ({
   _id: payment.id || payment._id,
   id: payment.id || payment._id,
-  memberId: payment.memberId,
-  amount: payment.amount,
+  userId: payment.userId || payment.memberId,
+  memberId: payment.userId || payment.memberId,
+  subscriptionId: payment.subscriptionId,
+  provider: payment.provider,
+  amount: Number(payment.amount ?? 0),
   currency: payment.currency || 'BDT',
   status: payment.status,
   gateway: payment.gateway,
-  transactionId: payment.transactionId,
+  transactionId:
+    payment.transactionId ||
+    payment.gatewayTransactionId ||
+    payment.providerPaymentId,
+  providerPaymentId: payment.providerPaymentId,
+  gatewayTransactionId: payment.gatewayTransactionId,
+  reference: payment.reference,
   orderId: payment.orderId,
   planId: payment.planId,
   planName: payment.planName,
@@ -82,6 +97,9 @@ export const paymentsApi = baseApi.injectEndpoints({
       {
         page?: number
         limit?: number
+        search?: string
+        sortBy?: string
+        sortOrder?: 'asc' | 'desc'
         status?: string
         gateway?: string
         memberId?: string
@@ -94,6 +112,9 @@ export const paymentsApi = baseApi.injectEndpoints({
         params: {
           page: params.page || 1,
           limit: params.limit || 10,
+          ...(params.search && { search: params.search }),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          ...(params.sortOrder && { sortOrder: params.sortOrder }),
           ...(params.status && { status: params.status }),
           ...(params.gateway && { gateway: params.gateway }),
           ...(params.memberId && { memberId: params.memberId }),

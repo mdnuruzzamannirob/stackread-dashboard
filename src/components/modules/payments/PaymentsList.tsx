@@ -8,13 +8,14 @@ import {
   useListPaymentsQuery,
   useRefundPaymentMutation,
 } from '@/store/api/paymentsApi'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { PaymentDetailsDialog } from './PaymentDetailsDialog'
 
 export function PaymentsList() {
   const t = useTranslations()
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<string | undefined>()
   const [gateway, setGateway] = useState<string | undefined>()
@@ -25,7 +26,6 @@ export function PaymentsList() {
     gateway: gateway || undefined,
   })
   const [refundPayment, { isLoading: isRefunding }] = useRefundPaymentMutation()
-  const [viewingPayment, setViewingPayment] = useState<Payment | null>(null)
   const [refundingPayment, setRefundingPayment] = useState<Payment | null>(null)
 
   const handleRefund = async () => {
@@ -164,24 +164,13 @@ export function PaymentsList() {
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading || isRefunding}
-        onView={setViewingPayment}
+        onView={(payment) => router.push(`/payments/${payment.id}`)}
         noDataMessage={t('payments.noPayments')}
         page={page}
         onPageChange={setPage}
         total={data?.total || 0}
         pageSize={20}
       />
-
-      {viewingPayment && (
-        <PaymentDetailsDialog
-          payment={viewingPayment}
-          onClose={() => setViewingPayment(null)}
-          onRefund={() => {
-            setViewingPayment(null)
-            setRefundingPayment(viewingPayment)
-          }}
-        />
-      )}
 
       {refundingPayment && (
         <ConfirmDialog

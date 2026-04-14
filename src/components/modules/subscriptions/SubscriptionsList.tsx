@@ -6,12 +6,13 @@ import {
   Subscription,
   useListSubscriptionsQuery,
 } from '@/store/api/subscriptionsApi'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
-import { SubscriptionDetailsDialog } from './SubscriptionDetailsDialog'
 
 export function SubscriptionsList() {
   const t = useTranslations()
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<string | undefined>()
   const { data, isLoading, isError, refetch } = useListSubscriptionsQuery({
@@ -19,9 +20,6 @@ export function SubscriptionsList() {
     limit: 20,
     status: status || undefined,
   })
-  const [viewingSubscription, setViewingSubscription] =
-    useState<Subscription | null>(null)
-
   const columns: DataTableColumn<Subscription>[] = [
     {
       key: 'memberId',
@@ -113,20 +111,15 @@ export function SubscriptionsList() {
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading}
-        onView={setViewingSubscription}
+        onView={(subscription) =>
+          router.push(`/subscriptions/${subscription.id}`)
+        }
         noDataMessage={t('subscriptions.noSubscriptions')}
         page={page}
         onPageChange={setPage}
         total={data?.total || 0}
         pageSize={20}
       />
-
-      {viewingSubscription && (
-        <SubscriptionDetailsDialog
-          subscription={viewingSubscription}
-          onClose={() => setViewingSubscription(null)}
-        />
-      )}
     </div>
   )
 }

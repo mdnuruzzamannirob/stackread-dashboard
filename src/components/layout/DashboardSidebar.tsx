@@ -99,6 +99,12 @@ export function DashboardSidebar() {
       section: 'FINANCE',
       items: [
         {
+          label: 'navigation.plans',
+          href: '/plans',
+          icon: TicketPercent,
+          requiredPermission: PERMISSIONS.PLANS_MANAGE,
+        },
+        {
           label: 'navigation.payments',
           href: '/payments',
           icon: CircleDollarSign,

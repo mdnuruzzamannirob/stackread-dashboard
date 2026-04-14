@@ -21,36 +21,35 @@ export interface Coupon {
   _id: string
   id: string
   code: string
+  title: string
+  description?: string
   discountType: 'percentage' | 'fixed'
   discountValue: number
-  maxUses?: number
-  usedCount: number
-  expiryDate?: string
-  applicableFor: 'all' | 'specific' | 'categories' | 'access-levels'
-  applicableBookIds?: string[]
-  applicableCategoryIds?: string[]
-  applicableAccessLevels?: string[]
-  minPurchaseAmount?: number
   maxDiscountAmount?: number
+  minOrderAmount?: number
+  totalLimit?: number
+  usedCount: number
+  applicablePlanIds: string[]
   isActive: boolean
-  description?: string
+  startsAt?: string
+  endsAt?: string
   createdAt: string
   updatedAt: string
 }
 
 export interface CreateCouponRequest {
   code: string
+  title: string
+  description?: string
   discountType: 'percentage' | 'fixed'
   discountValue: number
-  maxUses?: number
-  expiryDate?: string | Date
-  applicableFor: 'all' | 'specific' | 'categories' | 'access-levels'
-  applicableBookIds?: string[]
-  applicableCategoryIds?: string[]
-  applicableAccessLevels?: string[]
-  minPurchaseAmount?: number
   maxDiscountAmount?: number
-  description?: string
+  minOrderAmount?: number
+  totalLimit?: number
+  applicablePlanIds?: string[]
+  isActive?: boolean
+  startsAt?: string | Date
+  endsAt?: string | Date
 }
 
 export type UpdateCouponRequest = Partial<CreateCouponRequest>
@@ -68,13 +67,11 @@ export interface FlashSale {
   id: string
   title: string
   description?: string
-  discountType: 'percentage' | 'fixed'
-  discountValue: number
-  startDate: string
-  endDate: string
-  applicableBookIds: string[]
-  maxDiscountAmount?: number
+  discountPercentage: number
+  applicablePlanIds: string[]
   isActive: boolean
+  startsAt: string
+  endsAt: string
   createdAt: string
   updatedAt: string
 }
@@ -82,12 +79,11 @@ export interface FlashSale {
 export interface CreateFlashSaleRequest {
   title: string
   description?: string
-  discountType: 'percentage' | 'fixed'
-  discountValue: number
-  startDate: string | Date
-  endDate: string | Date
-  applicableBookIds: string[]
-  maxDiscountAmount?: number
+  discountPercentage: number
+  applicablePlanIds: string[]
+  isActive?: boolean
+  startsAt: string | Date
+  endsAt: string | Date
 }
 
 export type UpdateFlashSaleRequest = Partial<CreateFlashSaleRequest>
@@ -103,19 +99,20 @@ const mapCoupon = (coupon: any): Coupon => ({
   _id: coupon.id || coupon._id,
   id: coupon.id || coupon._id,
   code: coupon.code,
+  title: coupon.title,
+  description: coupon.description,
   discountType: coupon.discountType,
   discountValue: coupon.discountValue,
-  maxUses: coupon.maxUses,
-  usedCount: coupon.usedCount || 0,
-  expiryDate: coupon.expiryDate,
-  applicableFor: coupon.applicableFor,
-  applicableBookIds: coupon.applicableBookIds,
-  applicableCategoryIds: coupon.applicableCategoryIds,
-  applicableAccessLevels: coupon.applicableAccessLevels,
-  minPurchaseAmount: coupon.minPurchaseAmount,
   maxDiscountAmount: coupon.maxDiscountAmount,
+  minOrderAmount: coupon.minOrderAmount,
+  totalLimit: coupon.totalLimit,
+  usedCount: coupon.usedCount || 0,
+  applicablePlanIds: Array.isArray(coupon.applicablePlanIds)
+    ? coupon.applicablePlanIds
+    : [],
   isActive: Boolean(coupon.isActive),
-  description: coupon.description,
+  startsAt: coupon.startsAt,
+  endsAt: coupon.endsAt,
   createdAt: coupon.createdAt,
   updatedAt: coupon.updatedAt,
 })
@@ -125,13 +122,13 @@ const mapFlashSale = (sale: any): FlashSale => ({
   id: sale.id || sale._id,
   title: sale.title,
   description: sale.description,
-  discountType: sale.discountType,
-  discountValue: sale.discountValue,
-  startDate: sale.startDate,
-  endDate: sale.endDate,
-  applicableBookIds: sale.applicableBookIds || [],
-  maxDiscountAmount: sale.maxDiscountAmount,
+  discountPercentage: Number(sale.discountPercentage ?? 0),
+  applicablePlanIds: Array.isArray(sale.applicablePlanIds)
+    ? sale.applicablePlanIds
+    : [],
   isActive: Boolean(sale.isActive),
+  startsAt: sale.startsAt,
+  endsAt: sale.endsAt,
   createdAt: sale.createdAt,
   updatedAt: sale.updatedAt,
 })
@@ -146,6 +143,8 @@ export const promotionsApi = baseApi.injectEndpoints({
         limit?: number
         isActive?: boolean
         search?: string
+        sortBy?: string
+        sortOrder?: 'asc' | 'desc'
       }
     >({
       query: (params) => ({
@@ -157,6 +156,8 @@ export const promotionsApi = baseApi.injectEndpoints({
             isActive: params.isActive,
           }),
           ...(params.search && { search: params.search }),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          ...(params.sortOrder && { sortOrder: params.sortOrder }),
         },
       }),
       transformResponse: (
@@ -234,6 +235,9 @@ export const promotionsApi = baseApi.injectEndpoints({
         page?: number
         limit?: number
         isActive?: boolean
+        search?: string
+        sortBy?: string
+        sortOrder?: 'asc' | 'desc'
       }
     >({
       query: (params) => ({
@@ -244,6 +248,9 @@ export const promotionsApi = baseApi.injectEndpoints({
           ...(typeof params.isActive === 'boolean' && {
             isActive: params.isActive,
           }),
+          ...(params.search && { search: params.search }),
+          ...(params.sortBy && { sortBy: params.sortBy }),
+          ...(params.sortOrder && { sortOrder: params.sortOrder }),
         },
       }),
       transformResponse: (
@@ -323,4 +330,3 @@ export const {
   useToggleFlashSaleMutation,
   useDeleteFlashSaleMutation,
 } = promotionsApi
-

@@ -1,14 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { ReportsList } from '@/components/modules/reports/ReportsList'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function ReportsPage() {
-  const t = useTranslations()
   return (
-    <PageHeader
-      title={t('navigation.reports')}
-      description={t('pages.reportsDescription')}
-    />
+    <PermissionGuard requiredPermission={PERMISSIONS.REPORTS_VIEW}>
+      <ReportsList />
+    </PermissionGuard>
   )
 }
