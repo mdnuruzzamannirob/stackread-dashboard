@@ -97,49 +97,49 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 
 ### Auth Pages
 
-1. Route: /[locale]/auth/login
+1. Route: /[locale]/login
 
 - Permission: Public staff-auth
 - Render: Client form
 - APIs: POST /staff/login
 - Components: StaffLoginForm
 
-2. Route: /[locale]/auth/2fa/setup
+2. Route: /[locale]/2fa-setup
 
 - Permission: temp-auth only
 - Render: Client
 - APIs: POST /staff/2fa/setup, POST /staff/2fa/enable
 - Components: QRSetupPanel, OTPEnableForm
 
-3. Route: /[locale]/auth/2fa/verify
+3. Route: /[locale]/2fa-verify
 
 - Permission: temp-auth only
 - Render: Client
 - APIs: POST /staff/2fa/verify
 - Components: OTPVerifyForm
 
-4. Route: /[locale]/auth/accept-invite
+4. Route: /[locale]/accept-invite
 
 - Permission: Public invite token
 - Render: Client
 - APIs: POST /staff/accept-invite
 - Components: AcceptInviteForm
 
-5. Route: /[locale]/auth/forgot-password
+5. Route: /[locale]/forgot-password
 
 - Permission: Public staff-auth
 - Render: Client
 - APIs: POST /staff/forgot-password, POST /staff/resend-reset-otp
 - Components: StaffForgotPasswordForm
 
-6. Route: /[locale]/auth/reset-password/verify
+6. Route: /[locale]/verify-reset-otp
 
 - Permission: Public staff-auth
 - Render: Client
 - APIs: POST /staff/verify-reset-otp
 - Components: StaffResetOtpVerifyForm
 
-7. Route: /[locale]/auth/reset-password
+7. Route: /[locale]/reset-password
 
 - Permission: Public staff-auth
 - Render: Client
@@ -463,7 +463,7 @@ UI slice fields:
 
 - All feature APIs injected into one baseApi
 - Domain tags per module for targeted invalidation
-- 401 handling: clear auth state and redirect to /auth/login
+- 401 handling: clear auth state and redirect to /login
 - Server components use direct server fetching for initial snapshots
 - Client components own mutation workflows and optimistic updates
 
@@ -475,7 +475,7 @@ UI slice fields:
 
 ## Project Structure
 
-- src/app/[locale]/auth/\*
+- src/app/[locale]/(auth)/\*
 - src/app/[locale]/dashboard/\*
 - src/app/[locale]/books/\*
 - src/app/[locale]/authors/\*

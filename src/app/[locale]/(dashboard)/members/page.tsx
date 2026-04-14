@@ -1,14 +1,13 @@
 'use client'
 
-import { PageHeader } from '@/components/common/PageHeader'
-import { useTranslations } from 'next-intl'
+import { PermissionGuard } from '@/components/common/PermissionGuard'
+import { MembersList } from '@/components/modules/members/MembersList'
+import { PERMISSIONS } from '@/lib/auth/permissions'
 
 export default function MembersPage() {
-  const t = useTranslations()
   return (
-    <PageHeader
-      title={t('navigation.members')}
-      description={t('pages.membersDescription')}
-    />
+    <PermissionGuard requiredPermission={PERMISSIONS.MEMBERS_VIEW}>
+      <MembersList />
+    </PermissionGuard>
   )
 }

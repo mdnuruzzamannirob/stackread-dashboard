@@ -28,6 +28,14 @@ export interface RevenueTrendPoint {
   revenue: number
 }
 
+export interface BorrowStats {
+  total: number
+  borrowed: number
+  returned: number
+  overdue: number
+  cancelled: number
+}
+
 export interface ActivityLogItem {
   _id: string
   action: string
@@ -46,6 +54,7 @@ export interface AdminOverviewResponse {
     title: string
     borrowCount: number
   }>
+  borrowStats: BorrowStats
 }
 
 interface BackendAdminOverviewResponse {
@@ -122,6 +131,13 @@ export const dashboardApi = baseApi.injectEndpoints({
           title: book.title,
           borrowCount: Number(book.borrowCount ?? 0),
         })),
+        borrowStats: {
+          total: Number(response.data.borrowStats?.total ?? 0),
+          borrowed: Number(response.data.borrowStats?.borrowed ?? 0),
+          returned: Number(response.data.borrowStats?.returned ?? 0),
+          overdue: Number(response.data.borrowStats?.overdue ?? 0),
+          cancelled: Number(response.data.borrowStats?.cancelled ?? 0),
+        },
       }),
       providesTags: [{ type: 'Dashboard', id: 'OVERVIEW' }],
     }),

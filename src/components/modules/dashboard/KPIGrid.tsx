@@ -7,7 +7,7 @@ import { useTranslations } from 'next-intl'
 export interface KPIGridProps {
   stats: {
     totalMembers: number
-    totalBooks: number
+    totalBooks: number | null
     activeLoans: number
     activeSubscriptions?: number
     totalRevenue: number
@@ -28,7 +28,11 @@ export function KPIGrid({ stats, growth }: KPIGridProps) {
     return Number.isFinite(value) ? value : 0
   }
 
-  const formatNumber = (num: number) => {
+  const formatNumber = (num: number | null | undefined) => {
+    if (num === null || num === undefined) {
+      return '—'
+    }
+
     return new Intl.NumberFormat('en-US').format(toSafeNumber(num))
   }
 

@@ -140,7 +140,7 @@ export function DashboardSidebar() {
         },
         {
           label: 'navigation.rbac',
-          href: '/rbac',
+          href: '/rbac/roles',
           icon: Shield,
           requiredPermission: PERMISSIONS.RBAC_VIEW,
         },

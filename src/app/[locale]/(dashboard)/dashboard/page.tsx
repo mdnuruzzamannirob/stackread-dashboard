@@ -52,75 +52,30 @@ export default function DashboardPage() {
     )
   }
 
-  const fallbackStats = {
-    totalMembers: 12458,
-    totalBooks: 1834,
-    activeLoans: 962,
-    activeSubscriptions: 3247,
-    totalRevenue: 245680,
-  }
-
-  const fallbackGrowth = {
-    memberGrowth: 12.5,
-    bookAdditions: -2.1,
-    loanTrend: 4.8,
-    subscriptionGrowth: 8.2,
-    revenueGrowth: 15.3,
-  }
-
-  const sourceStats = overviewData.stats ?? fallbackStats
+  const sourceStats = overviewData.stats
   const resolvedStats = {
-    totalMembers: Number(
-      sourceStats.totalMembers || fallbackStats.totalMembers,
-    ),
-    totalBooks: Number(sourceStats.totalBooks || fallbackStats.totalBooks),
-    activeLoans: Number(sourceStats.activeLoans || fallbackStats.activeLoans),
-    activeSubscriptions: Number(
-      sourceStats.activeSubscriptions || fallbackStats.activeSubscriptions,
-    ),
-    totalRevenue: Number(
-      sourceStats.totalRevenue || fallbackStats.totalRevenue,
-    ),
+    totalMembers: Number(sourceStats.totalMembers ?? 0),
+    totalBooks: null,
+    activeLoans: Number(sourceStats.activeLoans ?? 0),
+    activeSubscriptions: Number(sourceStats.activeSubscriptions ?? 0),
+    totalRevenue: Number(sourceStats.totalRevenue ?? 0),
   }
 
   const resolvedGrowth = {
-    memberGrowth: Number(
-      overviewData.stats?.memberGrowth || fallbackGrowth.memberGrowth,
-    ),
-    bookAdditions: Number(
-      overviewData.stats?.bookAdditions || fallbackGrowth.bookAdditions,
-    ),
-    loanTrend: Number(
-      overviewData.stats?.loanTrend || fallbackGrowth.loanTrend,
-    ),
-    subscriptionGrowth: Number(
-      overviewData.stats?.subscriptionGrowth ||
-        fallbackGrowth.subscriptionGrowth,
-    ),
-    revenueGrowth: Number(
-      overviewData.stats?.revenueGrowth || fallbackGrowth.revenueGrowth,
-    ),
+    memberGrowth: Number(overviewData.stats?.memberGrowth ?? 0),
+    bookAdditions: Number(overviewData.stats?.bookAdditions ?? 0),
+    loanTrend: Number(overviewData.stats?.loanTrend ?? 0),
+    subscriptionGrowth: Number(overviewData.stats?.subscriptionGrowth ?? 0),
+    revenueGrowth: Number(overviewData.stats?.revenueGrowth ?? 0),
   }
 
-  const revenueSeries =
-    overviewData.revenueTrend && overviewData.revenueTrend.length > 0
-      ? overviewData.revenueTrend
-      : [
-          { date: '01', revenue: 46000 },
-          { date: '05', revenue: 52000 },
-          { date: '10', revenue: 61000 },
-          { date: '15', revenue: 58000 },
-          { date: '20', revenue: 72000 },
-          { date: '25', revenue: 69000 },
-          { date: '30', revenue: 77000 },
-        ]
+  const revenueSeries = overviewData.revenueTrend ?? []
 
   const totalMembers = resolvedStats.totalMembers
   const activeSubscriptions = resolvedStats.activeSubscriptions
-  const normalizedMembers = Math.max(totalMembers, activeSubscriptions)
   const premium = Math.round(activeSubscriptions * 0.3)
   const basic = Math.max(activeSubscriptions - premium, 0)
-  const free = Math.max(normalizedMembers - activeSubscriptions, 0)
+  const free = Math.max(totalMembers - activeSubscriptions, 0)
 
   const subscriptionDistribution = [
     { name: 'Free', value: free, color: '#9ca3af' },
@@ -128,26 +83,26 @@ export default function DashboardPage() {
     { name: 'Premium', value: premium, color: '#f59e0b' },
   ]
 
-  const signupSeries = [
-    { day: 'Mon', value: 45 },
-    { day: 'Tue', value: 52 },
-    { day: 'Wed', value: 38 },
-    { day: 'Thu', value: 66 },
-    { day: 'Fri', value: 58 },
-    { day: 'Sat', value: 42 },
-    { day: 'Sun', value: 35 },
+  const borrowSeries = [
+    {
+      label: 'Borrowed',
+      value: Number(overviewData.borrowStats.borrowed ?? 0),
+    },
+    {
+      label: 'Returned',
+      value: Number(overviewData.borrowStats.returned ?? 0),
+    },
+    {
+      label: 'Overdue',
+      value: Number(overviewData.borrowStats.overdue ?? 0),
+    },
+    {
+      label: 'Cancelled',
+      value: Number(overviewData.borrowStats.cancelled ?? 0),
+    },
   ]
 
-  const topBooks =
-    overviewData.popularBooks && overviewData.popularBooks.length > 0
-      ? overviewData.popularBooks.slice(0, 5)
-      : [
-          { title: 'The Great Gatsby', borrowCount: 1234 },
-          { title: 'To Kill a Mockingbird', borrowCount: 1156 },
-          { title: '1984', borrowCount: 1089 },
-          { title: 'Pride and Prejudice', borrowCount: 987 },
-          { title: 'The Catcher in the Rye', borrowCount: 856 },
-        ]
+  const topBooks = overviewData.popularBooks.slice(0, 5)
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -217,13 +172,13 @@ export default function DashboardPage() {
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <article className="rounded-xl border border-border bg-card p-5 sm:p-6 xl:col-span-8">
           <h2 className="mb-4 text-base font-semibold sm:text-lg">
-            New Signups (Last 7 Days)
+            Borrow Lifecycle Overview
           </h2>
           <div className="h-56 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={signupSeries}>
+              <BarChart data={borrowSeries}>
                 <XAxis
-                  dataKey="day"
+                  dataKey="label"
                   axisLine={false}
                   tickLine={false}
                   fontSize={12}

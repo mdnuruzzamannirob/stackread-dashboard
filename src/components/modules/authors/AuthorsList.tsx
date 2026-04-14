@@ -9,12 +9,14 @@ import {
   useGetAuthorsQuery,
 } from '@/store/api/authorsApi'
 import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AuthorFormDialog } from './AuthorFormDialog'
 
 export function AuthorsList() {
   const t = useTranslations()
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetAuthorsQuery({
@@ -119,6 +121,7 @@ export function AuthorsList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
+        onView={(author) => router.push(`/authors/${author._id}`)}
         onDelete={setDeletingAuthor}
         searchPlaceholder={`${t('common.search')} authors...`}
         noDataMessage={t('authors.noAuthors')}

@@ -8,14 +8,15 @@ import {
   useDeleteBookMutation,
   useGetBooksQuery,
 } from '@/store/api/booksApi'
+import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { BookDetailsDialog } from './BookDetailsDialog'
-import { BookFormDialog } from './BookFormDialog'
 
 export function BooksList() {
   const t = useTranslations()
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetBooksQuery({
@@ -24,25 +25,14 @@ export function BooksList() {
     search: search || undefined,
   })
   const [deleteBook, { isLoading: isDeleting }] = useDeleteBookMutation()
-  const [showDialog, setShowDialog] = useState(false)
-  const [editingBook, setEditingBook] = useState<Book | null>(null)
-  const [viewingBook, setViewingBook] = useState<Book | null>(null)
   const [deletingBook, setDeletingBook] = useState<Book | null>(null)
 
   const handleAdd = () => {
-    setEditingBook(null)
-    setShowDialog(true)
+    router.push('/books/new')
   }
 
   const handleEdit = (book: Book) => {
-    setEditingBook(book)
-    setShowDialog(true)
-  }
-
-  const handleCloseDialog = () => {
-    setShowDialog(false)
-    setEditingBook(null)
-    refetch()
+    router.push(`/books/${book._id}/edit`)
   }
 
   const handleDelete = async () => {
@@ -143,13 +133,23 @@ export function BooksList() {
         description={t('books.description')}
       />
 
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.push('/books/import')}
+        >
+          Import Books
+        </Button>
+      </div>
+
       <DataTable
         columns={columns}
         data={data?.data || []}
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
-        onView={setViewingBook}
+        onView={(book) => router.push(`/books/${book._id}`)}
         onDelete={setDeletingBook}
         searchPlaceholder={`${t('common.search')} books...`}
         noDataMessage={t('books.noBooks')}
@@ -162,17 +162,6 @@ export function BooksList() {
         total={data?.total || 0}
         pageSize={20}
       />
-
-      {showDialog && (
-        <BookFormDialog book={editingBook} onClose={handleCloseDialog} />
-      )}
-
-      {viewingBook && (
-        <BookDetailsDialog
-          book={viewingBook}
-          onClose={() => setViewingBook(null)}
-        />
-      )}
 
       {deletingBook && (
         <ConfirmDialog

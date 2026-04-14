@@ -52,8 +52,10 @@ export interface Book {
   edition?: string
   featured: boolean
   isAvailable: boolean
+  availabilityStatus: 'available' | 'unavailable' | 'coming_soon'
   accessLevel: 'free' | 'basic' | 'premium'
   isPublished: boolean
+  status: 'draft' | 'published' | 'archived'
   authorIds: string[]
   categoryIds: string[]
   publisherId?: string
@@ -116,8 +118,10 @@ interface BackendBook {
   edition?: string
   featured: boolean
   isAvailable: boolean
+  availabilityStatus: 'available' | 'unavailable' | 'coming_soon'
   accessLevel: 'free' | 'basic' | 'premium'
   isPublished: boolean
+  status: 'draft' | 'published' | 'archived'
   authorIds: string[]
   categoryIds: string[]
   publisherId?: string
@@ -146,8 +150,11 @@ const mapBook = (book: BackendBook): Book => ({
   edition: book.edition || undefined,
   featured: Boolean(book.featured),
   isAvailable: Boolean(book.isAvailable),
+  availabilityStatus:
+    book.availabilityStatus || (book.isAvailable ? 'available' : 'unavailable'),
   accessLevel: book.accessLevel || 'free',
   isPublished: Boolean(book.isPublished),
+  status: book.status || (book.isPublished ? 'published' : 'draft'),
   authorIds: Array.isArray(book.authorIds) ? book.authorIds : [],
   categoryIds: Array.isArray(book.categoryIds) ? book.categoryIds : [],
   publisherId: book.publisherId || undefined,
@@ -173,8 +180,15 @@ const mapBook = (book: BackendBook): Book => ({
 })
 
 export interface BulkImportRequest {
-  books: CreateBookRequest[]
+  books: Array<
+    CreateBookRequest & {
+      status?: BookStatus
+      availabilityStatus?: 'available' | 'unavailable' | 'coming_soon'
+    }
+  >
 }
+
+export type BookStatus = 'draft' | 'published' | 'archived'
 
 export type UploadBookFileBody =
   | {
@@ -354,6 +368,23 @@ export const booksApi = baseApi.injectEndpoints({
       ],
     }),
 
+    updateBookStatus: builder.mutation<
+      Book,
+      { id: string; status: BookStatus }
+    >({
+      query: ({ id, status }) => ({
+        url: `/admin/books/${id}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      transformResponse: (response: ApiEnvelope<BackendBook>): Book =>
+        mapBook(response.data),
+      invalidatesTags: (result, error, { id }) => [
+        { type: 'Books', id },
+        { type: 'Books', id: 'LIST' },
+      ],
+    }),
+
     bulkImportBooks: builder.mutation<
       { imported: number; failed: number },
       BulkImportRequest
@@ -384,5 +415,6 @@ export const {
   useDeleteBookFileMutation,
   useToggleBookFeaturedMutation,
   useToggleBookAvailableMutation,
+  useUpdateBookStatusMutation,
   useBulkImportBooksMutation,
 } = booksApi

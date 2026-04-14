@@ -9,12 +9,14 @@ import {
   useGetCategoriesQuery,
 } from '@/store/api/categoriesApi'
 import { useTranslations } from 'next-intl'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { CategoryFormDialog } from './CategoryFormDialog'
 
 export function CategoriesList() {
   const t = useTranslations()
+  const router = useRouter()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const { data, isLoading, isError, refetch } = useGetCategoriesQuery({
@@ -122,6 +124,7 @@ export function CategoriesList() {
         isLoading={isLoading || isDeleting}
         onAdd={handleAdd}
         onEdit={handleEdit}
+        onView={(category) => router.push(`/categories/${category._id}`)}
         onDelete={setDeletingCategory}
         searchPlaceholder={`${t('common.search')} categories...`}
         noDataMessage={t('categories.noCategories')}

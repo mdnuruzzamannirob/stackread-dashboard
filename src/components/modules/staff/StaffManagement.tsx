@@ -13,11 +13,13 @@ import {
   useUnsuspendStaffMutation,
   useUpdateStaffRoleMutation,
 } from '@/store/api/staffApi'
+import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { useMemo, useState } from 'react'
 
 export function StaffManagement() {
   const t = useTranslations()
+  const router = useRouter()
   const { data: staffList = [], isLoading } = useGetStaffListQuery()
   const { data: roles = [] } = useGetRbacRolesQuery()
 
@@ -221,6 +223,13 @@ export function StaffManagement() {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/staff/${staff.id}`)}
+                      >
+                        View
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"
