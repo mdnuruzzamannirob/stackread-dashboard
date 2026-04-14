@@ -97,14 +97,14 @@ export function TwoFactorVerifyForm() {
     }
 
     try {
-      const payload = {
+      const payload: { tempToken: string; otp?: string; emailOtp?: string } = {
         tempToken,
         ...(method === 'email' && formData.emailOtp
           ? { emailOtp: formData.emailOtp }
           : { otp: formData.otp }),
       }
 
-      const response = await verify2FA(payload as any).unwrap()
+      const response = await verify2FA(payload).unwrap()
 
       setSessionTokenCookie(response.token)
       clearTempTokenStorage()

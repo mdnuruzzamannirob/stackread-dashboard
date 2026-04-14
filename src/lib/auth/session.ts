@@ -21,6 +21,7 @@ export interface Session {
   actorType: 'staff' | 'super_admin'
   permissions: string[]
   mustSetup2FA: boolean
+  requiresTwoFactor: boolean
   isExpired: boolean
 }
 
@@ -49,15 +50,15 @@ export async function getSession(): Promise<Session | null> {
     const now = Math.floor(Date.now() / 1000)
     const isExpired = payload.exp < now
     const mustSetup2FA =
-      payload.mustSetup2FA === true ||
-      payload.requiresTwoFactor === true ||
-      payload.twoFactorEnabled === false
+      payload.mustSetup2FA === true || payload.twoFactorEnabled === false
+    const requiresTwoFactor = payload.requiresTwoFactor === true
 
     return {
       staffId,
       actorType,
       permissions: payload.permissions || [],
       mustSetup2FA,
+      requiresTwoFactor,
       isExpired,
     }
   } catch (error) {

@@ -13,5 +13,13 @@ export default async function LocaleHomePage({
     redirect(`/${locale}/login`)
   }
 
+  if (session.requiresTwoFactor) {
+    redirect(`/${locale}/2fa-verify`)
+  }
+
+  if (session.mustSetup2FA) {
+    redirect(`/${locale}/2fa-setup`)
+  }
+
   redirect(`/${locale}/dashboard`)
 }

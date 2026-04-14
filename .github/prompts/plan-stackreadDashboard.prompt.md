@@ -125,6 +125,27 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - APIs: POST /staff/accept-invite
 - Components: AcceptInviteForm
 
+5. Route: /[locale]/auth/forgot-password
+
+- Permission: Public staff-auth
+- Render: Client
+- APIs: POST /staff/forgot-password, POST /staff/resend-reset-otp
+- Components: StaffForgotPasswordForm
+
+6. Route: /[locale]/auth/reset-password/verify
+
+- Permission: Public staff-auth
+- Render: Client
+- APIs: POST /staff/verify-reset-otp
+- Components: StaffResetOtpVerifyForm
+
+7. Route: /[locale]/auth/reset-password
+
+- Permission: Public staff-auth
+- Render: Client
+- APIs: POST /staff/reset-password
+- Components: StaffResetPasswordForm
+
 ### Auth API Endpoints (Non-Page)
 
 - GET /staff/me
@@ -138,191 +159,205 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - POST /staff/2fa/email/send (OTP delivery alternative to QR)
 - POST /staff/2fa/disable
 
+### Topbar/Session Utility APIs (Non-Page)
+
+- GET /notifications
+- GET /notifications/unread-count
+- PATCH /notifications/:id/read
+- PATCH /notifications/mark-read
+
 ### Admin and Staff Pages
 
-5. Route: /[locale]/dashboard
+8. Route: /[locale]/dashboard
 
 - Permission: authenticated staff
 - Render: Server + client charts
 - APIs: GET /admin/reports/admin-overview, GET /admin/audit/logs
 - Components: KPIGrid, RevenueTrendChart, ActivityFeed
 
-6. Route: /[locale]/books
+9. Route: /[locale]/books
 
 - Permission: books.manage
 - Render: Server table + client filters
 - APIs: GET /books
 - Components: BookDataTable, BookFilterPanel
 
-7. Route: /[locale]/books/new
+10. Route: /[locale]/books/new
 
 - Permission: books.manage
 - Render: Client form
 - APIs: POST /admin/books, GET /authors, GET /categories
 - Components: BookCreateForm, FileUploader
 
-8. Route: /[locale]/books/[id]/edit
+11. Route: /[locale]/books/[id]/edit
 
 - Permission: books.manage
 - Render: Client form
-- APIs: GET /books/:id, PUT /admin/books/:id, POST /admin/books/:id/files, DELETE /admin/books/:id/files/:fid, PATCH /admin/books/:id/featured, PATCH /admin/books/:id/available
+- APIs: GET /books/:id, PUT /admin/books/:id, DELETE /admin/books/:id, POST /admin/books/:id/files, DELETE /admin/books/:id/files/:fid, PATCH /admin/books/:id/featured, PATCH /admin/books/:id/availability, PATCH /admin/books/:id/status
 - Components: BookEditForm, FileManager
 
-9. Route: /[locale]/books/import
+12. Route: /[locale]/books/import
 
 - Permission: books.manage
 - Render: Client
 - APIs: POST /admin/books/bulk-import
 - Components: BulkImportWizard
 
-10. Route: /[locale]/authors
+13. Route: /[locale]/authors
 
 - Permission: authors.manage
 - Render: Server list + client actions
 - APIs: GET /authors, POST /authors, PUT /authors/:id, DELETE /authors/:id
 - Components: AuthorTable, AuthorFormDialog
 
-11. Route: /[locale]/authors/[id]
+14. Route: /[locale]/authors/[id]
 
 - Permission: authors.manage
 - Render: Server
 - APIs: GET /authors/:id
 - Components: AuthorDetailPanel
 
-12. Route: /[locale]/categories
+15. Route: /[locale]/categories
 
 - Permission: categories.manage
 - Render: Server + client editor
 - APIs: GET /categories, POST /categories, PUT /categories/:id, DELETE /categories/:id
 - Components: CategoryTreeEditor
 
-13. Route: /[locale]/categories/[id]
+16. Route: /[locale]/categories/[id]
 
 - Permission: categories.manage
 - Render: Server
 - APIs: GET /categories/:id
 - Components: CategoryDetailCard
 
-14. Route: /[locale]/members
+17. Route: /[locale]/members
 
 - Permission: members.view
 - Render: Server table + client filters
 - APIs: GET /admin/members
 - Components: MembersTable
 
-15. Route: /[locale]/members/[userId]
+18. Route: /[locale]/members/[userId]
 
-- Permission: members.view
+- Permission: members.view (read), members.manage (suspend/unsuspend/delete)
 - Render: Server + client tabs
-- APIs: GET /admin/members/:userId, GET /admin/members/:userId/reading-history, GET /admin/members/:userId/payments
+- APIs: GET /admin/members/:userId, GET /admin/members/:userId/reading-history, GET /admin/members/:userId/payments, PATCH /admin/members/:userId/suspend, PATCH /admin/members/:userId/unsuspend, DELETE /admin/members/:userId
 - Components: MemberProfileTab, MemberReadingTab, MemberPaymentsTab
 
-16. Route: /[locale]/subscriptions
+19. Route: /[locale]/subscriptions
 
 - Permission: subscriptions.view
 - Render: Server
 - APIs: GET /subscriptions
 - Components: SubscriptionTable
 
-17. Route: /[locale]/subscriptions/[id]
+20. Route: /[locale]/subscriptions/[id]
 
 - Permission: subscriptions.view
 - Render: Server + client actions
 - APIs: GET /subscriptions/:id, PATCH /subscriptions/:id
 - Components: SubscriptionDetailPanel
 
-18. Route: /[locale]/payments
+21. Route: /[locale]/payments
 
 - Permission: payments.view
 - Render: Server
 - APIs: GET /payments
 - Components: PaymentsTable
 
-19. Route: /[locale]/payments/[id]
+22. Route: /[locale]/payments/[id]
 
 - Permission: payments.view
 - Render: Server + client refund action
 - APIs: GET /payments/:id, POST /payments/:id/refund
 - Components: PaymentDetailCard, RefundDialog
 
-20. Route: /[locale]/promotions/coupons
+23. Route: /[locale]/promotions/coupons
 
-- Permission: promotions.view/manage
+- Permission: promotions.view (read), promotions.manage (create/update/toggle/delete)
 - Render: Server + client form modals
 - APIs: GET /coupons, POST /coupons, GET /coupons/:id, PUT /coupons/:id, PATCH /coupons/:id/toggle, DELETE /coupons/:id
 - Components: CouponTable, CouponForm
 
-21. Route: /[locale]/promotions/flash-sales
+24. Route: /[locale]/promotions/flash-sales
 
-- Permission: promotions.view/manage
+- Permission: promotions.view (read), promotions.manage (create/update/toggle/delete)
 - Render: Server + client form modals
 - APIs: GET /flash-sales, POST /flash-sales, PUT /flash-sales/:id, PATCH /flash-sales/:id/toggle, DELETE /flash-sales/:id
 - Components: FlashSaleTable, FlashSaleForm
 
-22. Route: /[locale]/reviews
+25. Route: /[locale]/reviews
 
-- Permission: reviews.view/manage
+- Permission: reviews.view (read), reviews.manage (moderation)
 - Render: Server + client moderation actions
 - APIs: GET /admin/reviews, PATCH /admin/reviews/:id/toggle
 - Components: ReviewModerationTable
 
-23. Route: /[locale]/publishers
+26. Route: /[locale]/publishers
 
 - Permission: publishers.manage
 - Render: Server + client form/dialog actions
 - APIs: GET /publishers, GET /publishers/:id, POST /publishers, PATCH /publishers/:id, DELETE /publishers/:id
 - Components: PublisherTable, PublisherFormDialog
 
-25. Route: /[locale]/staff
+27. Route: /[locale]/plans
+
+- Permission: plans.manage
+- Render: Server + client form/dialog actions
+- APIs: GET /plans, POST /plans, GET /plans/:id, PUT /plans/:id, PATCH /plans/:id/toggle
+- Components: PlanTable, PlanFormDialog
+
+28. Route: /[locale]/staff
 
 - Permission: staff.view
 - Render: Server
 - APIs: GET /admin/staff, POST /admin/staff/invite
 - Components: StaffTable, InviteStaffDialog
 
-26. Route: /[locale]/staff/[id]
+29. Route: /[locale]/staff/[id]
 
-- Permission: staff.view/manage
+- Permission: staff.view (read), staff.manage (mutations)
 - Render: Server + client actions
 - APIs: GET /admin/staff/:id, GET /admin/staff/:id/activity, PATCH /admin/staff/:id/role, PATCH /admin/staff/:id/suspend, PATCH /admin/staff/:id/unsuspend, POST /admin/staff/:id/reinvite, POST /admin/staff/:id/2fa/reset, DELETE /admin/staff/:id
 - Components: StaffProfileCard, ActivityTimeline
 
-27. Route: /[locale]/rbac/roles
+30. Route: /[locale]/rbac/roles
 
-- Permission: rbac.view/manage
+- Permission: rbac.view (read), rbac.manage (mutations)
 - Render: Server + client matrix editor
 - APIs: GET /admin/permissions, GET /admin/roles, POST /admin/roles, GET /admin/roles/:id, PUT /admin/roles/:id, DELETE /admin/roles/:id
 - Components: RoleTable, PermissionMatrixEditor
 
-28. Route: /[locale]/audit
+31. Route: /[locale]/audit
 
 - Permission: audit.view
 - Render: Server + client export actions
 - APIs: GET /admin/audit/logs, GET /admin/audit/logs/export, POST /admin/audit/activity
 - Components: AuditTimeline, ExportActions
 
-29. Route: /[locale]/reports
+32. Route: /[locale]/reports
 
-- Permission: reports.view/manage
+- Permission: reports.view (read), reports.manage (create/process)
 - Render: Server + client trigger actions
 - APIs: GET /admin/reports, POST /admin/reports, POST /admin/reports/process
 - Components: ReportsTable, CreateReportDialog
 
-30. Route: /[locale]/reports/[reportId]
+33. Route: /[locale]/reports/[reportId]
 
 - Permission: reports.view
 - Render: Server
 - APIs: GET /admin/reports/:reportId, GET /admin/reports/:reportId/download
 - Components: ReportDetailCard
 
-31. Route: /[locale]/settings
+34. Route: /[locale]/settings
 
-- Permission: settings.view/manage
+- Permission: settings.view (read), settings.manage (update)
 - Render: Server + client section forms
 - APIs: GET /admin/settings, PUT /admin/settings, GET /admin/settings/maintenance
 - Components: SettingsSections, MaintenanceToggle
 
-32. Route: /[locale]/notifications/broadcast
+35. Route: /[locale]/notifications/broadcast
 
 - Permission: notifications.manage
 - Render: Client form
@@ -331,30 +366,30 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 
 ### Special Pages
 
-33. Route: /[locale]/not-found
+36. Route: /[locale]/not-found
 
 - Permission: Public
 - Render: Server
 - APIs: none
 
-34. Route: /[locale]/forbidden
+37. Route: /[locale]/forbidden
 
 - Permission: Public
 - Render: Server
 - APIs: none
 
-35. Route: /[locale]/error
+38. Route: /[locale]/error
 
 - Permission: Public
 - Render: Client error boundary
 - APIs: none
 
-36. Loading skeletons per module
+39. Loading skeletons per module
 
 - Permission: contextual
 - APIs: none
 
-37. Empty states per module
+40. Empty states per module
 
 - Permission: contextual
 - APIs: none
@@ -376,6 +411,7 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - Auth: StaffLoginForm, TwoFactorSetupFlow, TwoFactorVerifyForm, InviteAcceptForm
 - Books: BookTable, BookForm, FileUploadPanel
 - Members: MemberTable, MemberTabs
+- Plans: PlanTable, PlanFormDialog
 - Staff: StaffTable, InviteDialog, RoleAssignDialog
 - RBAC: RoleTable, PermissionMatrix
 - Reports: ReportBuilder, ReportStatusTable
@@ -405,6 +441,7 @@ Each page includes route, purpose, required permission, rendering strategy, APIs
 - src/store/features/members/adminMembersApi.ts
 - src/store/features/staff/adminStaffApi.ts
 - src/store/features/rbac/adminRbacApi.ts
+- src/store/features/plans/adminPlansApi.ts
 - src/store/features/subscriptions/adminSubscriptionsApi.ts
 - src/store/features/payments/adminPaymentsApi.ts
 - src/store/features/promotions/adminPromotionsApi.ts
@@ -451,6 +488,7 @@ UI slice fields:
 - src/app/[locale]/reviews/\*
 - src/app/[locale]/staff/\*
 - src/app/[locale]/rbac/\*
+- src/app/[locale]/plans/\*
 - src/app/[locale]/audit/\*
 - src/app/[locale]/reports/\*
 - src/app/[locale]/settings/\*
@@ -477,8 +515,10 @@ UI slice fields:
 
 ## Endpoint Coverage Index (Backend Implemented)
 
-- OpenAPI paths mapped: 149
-- Postman requests mapped: 183
+- OpenAPI paths mapped: 150
+- OpenAPI operations mapped: 184
+- Postman requests mapped: 184
+- OpenAPI and Postman are in sync for operation coverage (after placeholder/query normalization)
 - Dashboard planning uses these artifacts plus mounted router truth in src/app/routes.ts
 
 ## Implementation Phases
@@ -516,12 +556,12 @@ UI slice fields:
 - Permissions: members._, staff._, rbac.\*
 - Order: members -> staff -> roles
 
-### Phase 5: Subscriptions + Payments + Promotions
+### Phase 5: Plans + Subscriptions + Payments + Promotions
 
-- Build: billing operations and discount controls
-- APIs: /subscriptions*, /payments*, /coupons*, /flash-sales*
-- Permissions: subscriptions._, payments._, promotions.\*
-- Order: subscriptions -> payments -> promotions
+- Build: plan configuration, billing operations, and discount controls
+- APIs: /plans*, /subscriptions*, /payments*, /coupons*, /flash-sales\*
+- Permissions: plans.manage, subscriptions._, payments._, promotions.\*
+- Order: plans -> subscriptions -> payments -> promotions
 
 ### Phase 6: Reports + Audit + Settings
 
@@ -558,3 +598,4 @@ UI slice fields:
 - No fake/mock/placeholder data
 - Auth checks in layout server boundary, not proxy
 - Permission-aware navigation and route guards everywhere
+- Respect backend response envelope (`success`, `message`, `data`, `meta`) in API adapters and error handling
