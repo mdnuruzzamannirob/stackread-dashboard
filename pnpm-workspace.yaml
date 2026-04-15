@@ -1,6 +1,8 @@
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@swc/core'
+  - core-js
+  - es5-ext
   - msw
   - sharp
   - unrs-resolver
